@@ -10,10 +10,11 @@ public class DataSourceProvider {
     // methode nous permettant d'initialiser la connexion au démarrage de l'app
     public static void initConnection() {
         if (connection == null) {
+            System.out.println("tentative");
             try {
                 // Vous devez avoir fait new JdbcDriverLoader() AVANT
                 connection = DriverManager.getConnection(
-                    "jdbc:oracle:thin:@oracle1.ensimag.fr:",  
+                    "jdbc:oracle:thin:@oracle1.ensimag.fr:1521:oracle1",  
                     "mengossn",        // si on a le temps, on mettra les id dans un fichier .env pour rendre faciliter nos tests     
                     "mengossn"                             
                 );
