@@ -2,7 +2,76 @@
 -- CRÉATION DE LA BASE DE DONNÉES - SYSTÈME DE VENTE EN CIRCUIT COURT
 -- ============================================
 
+-- DROP DES TABLES 
+
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PerteProduitVrac CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PerteProduitPreconditionne CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PerteProduit CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PerteContenant CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Perte CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE LigneCommandeProduitVrac CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE LigneCommandeProduitPreconditionne CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE LigneCommandeProduit CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE LigneCommandeContenant CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE LigneCommande CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE ModeRecuperationDomicile CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Commande CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PeutEtreUtiliseAvec CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE ConditionnementVrac CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE ConditionnementPreconditionne CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Conditionnement CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE ProduitEstDisponible CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Disponibilite CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE LotPreconditionne CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE LotVrac CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Lot CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Stock CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Produit CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Exerce CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE TypeActivite CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Producteur CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PossedeAdresse CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Client CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Contenant CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Adresse CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE Contact CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
+
+
+
+
 -- Table Contact
+
 CREATE TABLE Contact (
     idContact VARCHAR(10) PRIMARY KEY,  -- Format: CT0000000
     nom VARCHAR(100) NOT NULL,
@@ -12,6 +81,7 @@ CREATE TABLE Contact (
 );
 
 -- Table Client
+
 CREATE TABLE Client (
     idClient VARCHAR(10) PRIMARY KEY,  -- Format: CL0000000
     idContact VARCHAR(10) NOT NULL UNIQUE,
@@ -19,6 +89,7 @@ CREATE TABLE Client (
 );
 
 -- Table Adresse
+
 CREATE TABLE Adresse (
     idAdresse VARCHAR(10) PRIMARY KEY,  -- Format: AD0000000
     rue VARCHAR(255) NOT NULL,
@@ -27,6 +98,7 @@ CREATE TABLE Adresse (
 );
 
 -- Table PossedeAdresse (Association Client-Adresse)
+
 CREATE TABLE PossedeAdresse (
     idClient VARCHAR(10),
     idAdresse VARCHAR(10),
@@ -36,22 +108,25 @@ CREATE TABLE PossedeAdresse (
 );
 
 -- Table Producteur
+
 CREATE TABLE Producteur (
     idProducteur VARCHAR(10) PRIMARY KEY,  -- Format: PR0000000
     lattitude FLOAT,
     longitude FLOAT,
     idAdresse VARCHAR(10) NOT NULL,
     idContact VARCHAR(10) NOT NULL UNIQUE,
-    FOREIGN KEY (idAdresse) REFERENCES Adresse(idAdresse) ON DELETE RESTRICT,
+    FOREIGN KEY (idAdresse) REFERENCES Adresse(idAdresse),
     FOREIGN KEY (idContact) REFERENCES Contact(idContact) ON DELETE CASCADE
 );
 
--- Table TypeActivite
+-- Table TypeActivite 
+
 CREATE TABLE TypeActivite (
     typeActivite VARCHAR(50) PRIMARY KEY  -- Ex: "Agriculteur", "Eleveur"
 );
 
 -- Table Exerce (Association Producteur-TypeActivite)
+
 CREATE TABLE Exerce (
     idProducteur VARCHAR(10),
     typeActivite VARCHAR(50),
@@ -61,21 +136,23 @@ CREATE TABLE Exerce (
 );
 
 -- Table Produit
+
 CREATE TABLE Produit (
     idProduit VARCHAR(10),  -- Format: PD0000000
     idProducteur VARCHAR(10),
     categorie VARCHAR(50) NOT NULL,  -- Ex: "Fromage", "Boissons", "Céréales"
-    description TEXT,
+    description CLOB,
     bio VARCHAR(50),
     label VARCHAR(100),
     nomProduit VARCHAR(150) NOT NULL,
-    allergene TEXT,
+    allergene CLOB,
     origineGeographique VARCHAR(150),
     PRIMARY KEY (idProduit, idProducteur),
     FOREIGN KEY (idProducteur) REFERENCES Producteur(idProducteur) ON DELETE CASCADE
 );
 
 -- Table Stock
+
 CREATE TABLE Stock (
     idStock VARCHAR(10) PRIMARY KEY,  -- Format: ST0000000
     idProduit VARCHAR(10) NOT NULL,
@@ -84,6 +161,7 @@ CREATE TABLE Stock (
 );
 
 -- Table Lot
+
 CREATE TABLE Lot (
     idLot VARCHAR(10) PRIMARY KEY,  -- Format: LT0000000
     dateReception DATE NOT NULL,
@@ -94,6 +172,7 @@ CREATE TABLE Lot (
 );
 
 -- Table LotVrac
+
 CREATE TABLE LotVrac (
     idLot VARCHAR(10) PRIMARY KEY,
     quantiteDisponibleVrac FLOAT NOT NULL CHECK (quantiteDisponibleVrac > 0),
@@ -101,6 +180,7 @@ CREATE TABLE LotVrac (
 );
 
 -- Table LotPreconditionne
+
 CREATE TABLE LotPreconditionne (
     idLot VARCHAR(10) PRIMARY KEY,
     quantiteDisponiblePreconditionne INTEGER NOT NULL CHECK (quantiteDisponiblePreconditionne > 0),
@@ -108,6 +188,7 @@ CREATE TABLE LotPreconditionne (
 );
 
 -- Table Disponibilite
+
 CREATE TABLE Disponibilite (
     idDisponibilite VARCHAR(10) PRIMARY KEY,  -- Format: DS0000000
     debutDisponibilite DATE NOT NULL,
@@ -117,6 +198,7 @@ CREATE TABLE Disponibilite (
 );
 
 -- Table ProduitEstDisponible (Association)
+
 CREATE TABLE ProduitEstDisponible (
     idProduit VARCHAR(10),
     idProducteur VARCHAR(10),
@@ -126,7 +208,8 @@ CREATE TABLE ProduitEstDisponible (
     FOREIGN KEY (idDisponibilite) REFERENCES Disponibilite(idDisponibilite) ON DELETE CASCADE
 );
 
--- Table Conditionnement
+-- Table Conditionnement 
+
 CREATE TABLE Conditionnement (
     idConditionnement VARCHAR(10) PRIMARY KEY,  -- Format: CD0000000
     prixAchatProducteur FLOAT NOT NULL CHECK (prixAchatProducteur >= 0),
@@ -137,6 +220,7 @@ CREATE TABLE Conditionnement (
 );
 
 -- Table ConditionnementPreconditionne
+
 CREATE TABLE ConditionnementPreconditionne (
     idConditionnement VARCHAR(10) PRIMARY KEY,
     poidsSachet FLOAT NOT NULL CHECK (poidsSachet > 0),
@@ -144,12 +228,14 @@ CREATE TABLE ConditionnementPreconditionne (
 );
 
 -- Table ConditionnementVrac
+
 CREATE TABLE ConditionnementVrac (
     idConditionnement VARCHAR(10) PRIMARY KEY,
     FOREIGN KEY (idConditionnement) REFERENCES Conditionnement(idConditionnement) ON DELETE CASCADE
 );
 
 -- Table Contenant
+
 CREATE TABLE Contenant (
     referenceContenant VARCHAR(10) PRIMARY KEY,  -- Format: CN0000000
     typeContenant VARCHAR(100) NOT NULL,  -- Ex: "Bocaux en verre réutilisable", "sachet kraft"
@@ -159,7 +245,8 @@ CREATE TABLE Contenant (
     prixContenant FLOAT NOT NULL CHECK (prixContenant >= 0)
 );
 
--- Table PeutEtreUtiliseAvec (Association ConditionnementVrac-Contenant)
+-- Table PeutEtreUtiliseAvec (Association ConditionnementVrac-Contenant) 
+
 CREATE TABLE PeutEtreUtiliseAvec (
     idConditionnement VARCHAR(10),
     referenceContenant VARCHAR(10),
@@ -168,12 +255,13 @@ CREATE TABLE PeutEtreUtiliseAvec (
     FOREIGN KEY (referenceContenant) REFERENCES Contenant(referenceContenant) ON DELETE CASCADE
 );
 
--- Table Commande
+-- Table Commande 
+
 CREATE TABLE Commande (
     idCommande VARCHAR(10) PRIMARY KEY,  -- Format: CM0000000
     dateCommande DATE NOT NULL,
     dateRecuperation DATE, 
-    heureCommande TIME NOT NULL,
+    heureCommande TIMESTAMP NOT NULL,
     statutCommande VARCHAR(30) NOT NULL CHECK (statutCommande IN ('En préparation', 'Prête', 'En livraison', 'Annulée', 'Récupérée/Livrée')),
     modePaiement VARCHAR(20) NOT NULL CHECK (modePaiement IN ('En ligne', 'En Boutique')),
     modeRecuperation VARCHAR(20) NOT NULL CHECK (modeRecuperation IN ('Boutique', 'Domicile')),
@@ -182,6 +270,7 @@ CREATE TABLE Commande (
 );
 
 -- Table ModeRecuperationDomicile
+
 CREATE TABLE ModeRecuperationDomicile (
     idModeRecuperationDomicile VARCHAR(10) PRIMARY KEY,  -- Format: MR0000000
     paysLivraison VARCHAR(100) NOT NULL,
@@ -192,10 +281,11 @@ CREATE TABLE ModeRecuperationDomicile (
     idCommande VARCHAR(10) NOT NULL UNIQUE,
     idAdresse VARCHAR(10) NOT NULL,
     FOREIGN KEY (idCommande) REFERENCES Commande(idCommande) ON DELETE CASCADE,
-    FOREIGN KEY (idAdresse) REFERENCES Adresse(idAdresse) ON DELETE RESTRICT
+    FOREIGN KEY (idAdresse) REFERENCES Adresse(idAdresse)
 );
 
 -- Table LigneCommande
+
 CREATE TABLE LigneCommande (
     idLigneCommande VARCHAR(10) PRIMARY KEY,  -- Format: LC0000000
     prixUnitaire FLOAT NOT NULL CHECK (prixUnitaire >= 0),
@@ -205,6 +295,7 @@ CREATE TABLE LigneCommande (
 );
 
 -- Table LigneCommandeContenant
+
 CREATE TABLE LigneCommandeContenant (
     idLigneCommande VARCHAR(10) PRIMARY KEY,
     quantiteCommandeContenant INTEGER NOT NULL CHECK (quantiteCommandeContenant > 0),
@@ -212,15 +303,17 @@ CREATE TABLE LigneCommandeContenant (
 );
 
 -- Table LigneCommandeProduit
+
 CREATE TABLE LigneCommandeProduit (
     idLigneCommande VARCHAR(10) PRIMARY KEY,
     idProduit VARCHAR(10) NOT NULL,
     idProducteur VARCHAR(10) NOT NULL,
     FOREIGN KEY (idLigneCommande) REFERENCES LigneCommande(idLigneCommande) ON DELETE CASCADE,
-    FOREIGN KEY (idProduit, idProducteur) REFERENCES Produit(idProduit, idProducteur) ON DELETE RESTRICT
+    FOREIGN KEY (idProduit, idProducteur) REFERENCES Produit(idProduit, idProducteur)
 );
 
 -- Table LigneCommandeProduitVrac
+
 CREATE TABLE LigneCommandeProduitVrac (
     idLigneCommande VARCHAR(10) PRIMARY KEY,
     quantiteCommandeVrac FLOAT NOT NULL CHECK (quantiteCommandeVrac > 0),
@@ -228,6 +321,7 @@ CREATE TABLE LigneCommandeProduitVrac (
 );
 
 -- Table LigneCommandeProduitPreconditionne
+
 CREATE TABLE LigneCommandeProduitPreconditionne (
     idLigneCommande VARCHAR(10) PRIMARY KEY,
     quantiteCommandePreconditionne INTEGER NOT NULL CHECK (quantiteCommandePreconditionne > 0),
@@ -235,6 +329,7 @@ CREATE TABLE LigneCommandeProduitPreconditionne (
 );
 
 -- Table Perte
+
 CREATE TABLE Perte (
     idPerte VARCHAR(10) PRIMARY KEY,  -- Format: PT0000000
     datePerte DATE NOT NULL,
@@ -242,15 +337,17 @@ CREATE TABLE Perte (
 );
 
 -- Table PerteProduit
+
 CREATE TABLE PerteProduit (
     idPerte VARCHAR(10) PRIMARY KEY,
     idProduit VARCHAR(10) NOT NULL,
     idProducteur VARCHAR(10) NOT NULL,
     FOREIGN KEY (idPerte) REFERENCES Perte(idPerte) ON DELETE CASCADE,
-    FOREIGN KEY (idProduit, idProducteur) REFERENCES Produit(idProduit, idProducteur) ON DELETE RESTRICT
+    FOREIGN KEY (idProduit, idProducteur) REFERENCES Produit(idProduit, idProducteur)
 );
 
 -- Table PerteProduitPreconditionne
+
 CREATE TABLE PerteProduitPreconditionne (
     idPerte VARCHAR(10) PRIMARY KEY,
     quantitePerduePreconditionne INTEGER NOT NULL CHECK (quantitePerduePreconditionne > 0),
@@ -258,6 +355,7 @@ CREATE TABLE PerteProduitPreconditionne (
 );
 
 -- Table PerteProduitVrac
+
 CREATE TABLE PerteProduitVrac (
     idPerte VARCHAR(10) PRIMARY KEY,
     quantitePerdueVrac FLOAT NOT NULL CHECK (quantitePerdueVrac > 0),
@@ -265,12 +363,13 @@ CREATE TABLE PerteProduitVrac (
 );
 
 -- Table PerteContenant
+
 CREATE TABLE PerteContenant (
     idPerte VARCHAR(10) PRIMARY KEY,
     quantitePerdueContenant INTEGER NOT NULL CHECK (quantitePerdueContenant > 0),
     referenceContenant VARCHAR(10) NOT NULL,
     FOREIGN KEY (idPerte) REFERENCES Perte(idPerte) ON DELETE CASCADE,
-    FOREIGN KEY (referenceContenant) REFERENCES Contenant(referenceContenant) ON DELETE RESTRICT
+    FOREIGN KEY (referenceContenant) REFERENCES Contenant(referenceContenant)
 );
 
 -- ============================================
