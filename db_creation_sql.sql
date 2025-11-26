@@ -147,6 +147,7 @@ CREATE TABLE Produit (
     nomProduit VARCHAR(150) NOT NULL,
     allergene CLOB,
     origineGeographique VARCHAR(150),
+    delaiDisponibilite INTEGER, 
     PRIMARY KEY (idProduit, idProducteur),
     FOREIGN KEY (idProducteur) REFERENCES Producteur(idProducteur) ON DELETE CASCADE
 );
@@ -261,6 +262,7 @@ CREATE TABLE Commande (
     idCommande VARCHAR(10) PRIMARY KEY,  -- Format: CM0000000
     dateCommande DATE NOT NULL,
     dateRecuperation DATE, 
+    datePaiement DATE, 
     heureCommande TIMESTAMP NOT NULL,
     statutCommande VARCHAR(30) NOT NULL CHECK (statutCommande IN ('En préparation', 'Prête', 'En livraison', 'Annulée', 'Récupérée/Livrée')),
     modePaiement VARCHAR(20) NOT NULL CHECK (modePaiement IN ('En ligne', 'En Boutique')),
