@@ -12,7 +12,7 @@ public class AlertePeremption {
 
     public AlertePeremption() {}
 
-    
+    // Getters + Setters
     public String getIdLot() { return idLot; }
     public void setIdLot(String idLot) { this.idLot = idLot; }
 
