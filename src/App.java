@@ -12,6 +12,15 @@ public class App {
 
         // on se connecte après les id du client 
         DataSourceProvider.initConnection();
+
+        // on enleve l'autocommit : 
+        try {
+            DataSourceProvider.getConnection().setAutoCommit(false);
+        } catch (Exception e) {
+            System.err.println("Erreur de setting a false de l'autocommit" + e);
+        }
+
+        
         // ici (les gars on doit gerer les eveneemnts user pour interragir avec nos services (transactions))
 
         
