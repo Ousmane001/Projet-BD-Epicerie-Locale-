@@ -4,15 +4,15 @@ import config.DataSourceProvider;
 import model.AlertePeremption;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LotDAO {
 
     public List<AlertePeremption> findLotsPerissables() throws SQLException {
+
         String sql = """
-            SELECT 
+            SELECT
                 l.idLot,
                 s.idProduit,
                 s.idProducteur,
@@ -35,14 +35,12 @@ public class LotDAO {
             a.setIdProduit(rs.getString("idProduit"));
             a.setIdProducteur(rs.getString("idProducteur"));
             a.setJoursRestants(rs.getInt("joursRestants"));
-            a.setReductionProposee(0.30);
-            a.setDateAlerte(LocalDate.now());
-            a.setStatutAlerte("proposee");
             alertes.add(a);
         }
 
         rs.close();
         stmt.close();
+
         return alertes;
     }
 }
