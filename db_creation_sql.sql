@@ -303,9 +303,12 @@ CREATE TABLE LigneCommandeContenant (
     idLigneCommande VARCHAR(10), 
     idCommande VARCHAR(10), 
     quantiteCommandeContenant INTEGER NOT NULL CHECK (quantiteCommandeContenant > 0),
-    PRIMARY KEY (idLigneCommande, Commande),
-    FOREIGN KEY (idLigneCommande) REFERENCES LigneCommande(idLigneCommande) ON DELETE CASCADE
+    PRIMARY KEY (idLigneCommande, idCommande),
+    FOREIGN KEY (idLigneCommande, idCommande)
+        REFERENCES LigneCommande(idLigneCommande, idCommande)
+        ON DELETE CASCADE
 );
+
 
 -- Table LigneCommandeProduit
 
@@ -314,10 +317,14 @@ CREATE TABLE LigneCommandeProduit (
     idCommande VARCHAR(10),
     idProduit VARCHAR(10) NOT NULL,
     idProducteur VARCHAR(10) NOT NULL,
-    PRIMARY KEY (idLigneCommande, Commande),
-    FOREIGN KEY (idLigneCommande) REFERENCES LigneCommande(idLigneCommande) ON DELETE CASCADE,
-    FOREIGN KEY (idProduit, idProducteur) REFERENCES Produit(idProduit, idProducteur)
+    PRIMARY KEY (idLigneCommande, idCommande),
+    FOREIGN KEY (idLigneCommande, idCommande)
+        REFERENCES LigneCommande(idLigneCommande, idCommande)
+        ON DELETE CASCADE,
+    FOREIGN KEY (idProduit, idProducteur)
+        REFERENCES Produit(idProduit, idProducteur)
 );
+
 
 -- Table LigneCommandeProduitVrac
 
@@ -325,9 +332,12 @@ CREATE TABLE LigneCommandeProduitVrac (
     idLigneCommande VARCHAR(10),
     idCommande VARCHAR(10), 
     quantiteCommandeVrac FLOAT NOT NULL CHECK (quantiteCommandeVrac > 0),
-    PRIMARY KEY (idLigneCommande, Commande),
-    FOREIGN KEY (idLigneCommande) REFERENCES LigneCommandeProduit(idLigneCommande) ON DELETE CASCADE
+    PRIMARY KEY (idLigneCommande, idCommande),
+    FOREIGN KEY (idLigneCommande, idCommande)
+        REFERENCES LigneCommandeProduit(idLigneCommande, idCommande)
+        ON DELETE CASCADE
 );
+
 
 -- Table LigneCommandeProduitPreconditionne
 
@@ -336,8 +346,11 @@ CREATE TABLE LigneCommandeProduitPreconditionne (
     idCommande VARCHAR(10),
     quantiteCommandePreconditionne INTEGER NOT NULL CHECK (quantiteCommandePreconditionne > 0),
     PRIMARY KEY (idLigneCommande, idCommande), 
-    FOREIGN KEY (idLigneCommande) REFERENCES LigneCommandeProduit(idLigneCommande) ON DELETE CASCADE
+    FOREIGN KEY (idLigneCommande, idCommande)
+        REFERENCES LigneCommandeProduit(idLigneCommande, idCommande)
+        ON DELETE CASCADE
 );
+
 
 -- Table Perte
 

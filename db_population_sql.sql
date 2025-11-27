@@ -3,7 +3,7 @@
 -- ============================================
 
 -- ============================================
--- 1. INSERTION DES TYPES D'ACTIVITES
+-- 1. INSERTION DES TYPES D'ACTIVITESA
 -- ============================================
 INSERT ALL
   INTO TypeActivite (typeActivite) VALUES ('Agriculteur')
@@ -395,25 +395,25 @@ INSERT ALL
   INTO LigneCommandeProduitVrac (idLigneCommande, idCommande,  quantiteCommandeVrac) 
     VALUES ('LC1111111', 'CM1111111', 2.0)
   INTO LigneCommandeProduitVrac (idLigneCommande, idCommande, quantiteCommandeVrac) 
-    VALUES ('LC7777777', 'CM2222222', 2.0)
+    VALUES ('LC7777777', 'CM4444444', 2.0)
 SELECT * FROM dual;
 
 -- Lignes Commande Produit Préconditionné
 INSERT ALL
   INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC2222222','CM3333333', 2)
+    VALUES ('LC2222222','CM1111111', 2)
   INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC3333333', 'CM3333333', 2)
+    VALUES ('LC3333333', 'CM2222222', 2)
   INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC4444444', 'CM4444444', 2)
+    VALUES ('LC4444444', 'CM2222222', 2)
   INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC5555555', 'CM4444444', 2)
+    VALUES ('LC5555555', 'CM3333333', 2)
   INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC6666666', 'CM5555555',  2)
+    VALUES ('LC6666666', 'CM3333333',  2)
   INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC8888888', 'CM5555555', 2)
+    VALUES ('LC8888888', 'CM4444444', 2)
   INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC9999999', 'CM2222222', 2)
+    VALUES ('LC9999999', 'CM5555555', 2)
 SELECT * FROM dual;
 
 -- ============================================
