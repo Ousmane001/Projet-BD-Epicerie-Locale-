@@ -289,27 +289,32 @@ CREATE TABLE ModeRecuperationDomicile (
 -- Table LigneCommande
 
 CREATE TABLE LigneCommande (
-    idLigneCommande VARCHAR(10) PRIMARY KEY,  -- Format: LC0000000
+    idLigneCommande VARCHAR(10),  -- Format: LC0000000
     prixUnitaire FLOAT NOT NULL CHECK (prixUnitaire >= 0),
     sousTotalLigne FLOAT NOT NULL CHECK (sousTotalLigne >= 0),
     idCommande VARCHAR(10) NOT NULL,
+    PRIMARY KEY (idLigneCommande, idCommande), 
     FOREIGN KEY (idCommande) REFERENCES Commande(idCommande) ON DELETE CASCADE
 );
 
 -- Table LigneCommandeContenant
 
 CREATE TABLE LigneCommandeContenant (
-    idLigneCommande VARCHAR(10) PRIMARY KEY,
+    idLigneCommande VARCHAR(10), 
+    idCommande VARCHAR(10), 
     quantiteCommandeContenant INTEGER NOT NULL CHECK (quantiteCommandeContenant > 0),
+    PRIMARY KEY (idLigneCommande, Commande),
     FOREIGN KEY (idLigneCommande) REFERENCES LigneCommande(idLigneCommande) ON DELETE CASCADE
 );
 
 -- Table LigneCommandeProduit
 
 CREATE TABLE LigneCommandeProduit (
-    idLigneCommande VARCHAR(10) PRIMARY KEY,
+    idLigneCommande VARCHAR(10),
+    idCommande VARCHAR(10),
     idProduit VARCHAR(10) NOT NULL,
     idProducteur VARCHAR(10) NOT NULL,
+    PRIMARY KEY (idLigneCommande, Commande),
     FOREIGN KEY (idLigneCommande) REFERENCES LigneCommande(idLigneCommande) ON DELETE CASCADE,
     FOREIGN KEY (idProduit, idProducteur) REFERENCES Produit(idProduit, idProducteur)
 );
@@ -317,16 +322,20 @@ CREATE TABLE LigneCommandeProduit (
 -- Table LigneCommandeProduitVrac
 
 CREATE TABLE LigneCommandeProduitVrac (
-    idLigneCommande VARCHAR(10) PRIMARY KEY,
+    idLigneCommande VARCHAR(10),
+    idCommande VARCHAR(10), 
     quantiteCommandeVrac FLOAT NOT NULL CHECK (quantiteCommandeVrac > 0),
+    PRIMARY KEY (idLigneCommande, Commande),
     FOREIGN KEY (idLigneCommande) REFERENCES LigneCommandeProduit(idLigneCommande) ON DELETE CASCADE
 );
 
 -- Table LigneCommandeProduitPreconditionne
 
 CREATE TABLE LigneCommandeProduitPreconditionne (
-    idLigneCommande VARCHAR(10) PRIMARY KEY,
+    idLigneCommande VARCHAR(10),
+    idCommande VARCHAR(10),
     quantiteCommandePreconditionne INTEGER NOT NULL CHECK (quantiteCommandePreconditionne > 0),
+    PRIMARY KEY (idLigneCommande, idCommande), 
     FOREIGN KEY (idLigneCommande) REFERENCES LigneCommandeProduit(idLigneCommande) ON DELETE CASCADE
 );
 
@@ -381,7 +390,7 @@ CREATE TABLE PerteContenant (
 CREATE INDEX idx_commande_client ON Commande(idClient);
 CREATE INDEX idx_commande_date ON Commande(dateCommande);
 CREATE INDEX idx_commande_statut ON Commande(statutCommande);
-CREATE INDEX idx_lignecommande_commande ON LigneCommande(idCommande);
+CREATE INDEX idx_lignecommande_commande ON LigneCommande(idCommande, idLigneCommande);
 CREATE INDEX idx_produit_producteur ON Produit(idProducteur);
 CREATE INDEX idx_produit_categorie ON Produit(categorie);
 CREATE INDEX idx_stock_produit ON Stock(idProduit, idProducteur);

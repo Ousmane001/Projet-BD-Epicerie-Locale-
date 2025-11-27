@@ -370,57 +370,57 @@ SELECT * FROM dual;
 -- 20. INSERTION LIGNES COMMANDE PRODUIT
 -- ============================================
 INSERT ALL
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC1111111', 'PD1111111', 'PR1234567')
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC2222222', 'PD3333333', 'PR2345678')
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC3333333', 'PD2222222', 'PR1234567')
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC4444444', 'PD6666666', 'PR3456789')
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC5555555', 'PD7777777', 'PR4567890')
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC6666666', 'PD8888888', 'PR4567890')
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC7777777', 'PD5555555', 'PR3456789')
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC8888888', 'PD9999999', 'PR5678901')
-  INTO LigneCommandeProduit (idLigneCommande, idProduit, idProducteur) 
-    VALUES ('LC9999999', 'PD0000000', 'PR5678901')
+  INTO LigneCommandeProduit (idLigneCommande, idCommande, idProduit, idProducteur) 
+    VALUES ('LC1111111', 'CM1111111', 'PD1111111', 'PR1234567')
+  INTO LigneCommandeProduit (idLigneCommande, idCommande, idProduit, idProducteur) 
+    VALUES ('LC2222222', 'CM1111111', 'PD3333333', 'PR2345678')
+  INTO LigneCommandeProduit (idLigneCommande, idCommande, idProduit, idProducteur) 
+    VALUES ('LC3333333', 'CM2222222', 'PD2222222', 'PR1234567')
+  INTO LigneCommandeProduit (idLigneCommande,idCommande, idProduit, idProducteur) 
+    VALUES ('LC4444444', 'CM2222222', 'PD6666666', 'PR3456789')
+  INTO LigneCommandeProduit (idLigneCommande, idCommande, idProduit, idProducteur) 
+    VALUES ('LC5555555', 'CM3333333', 'PD7777777', 'PR4567890')
+  INTO LigneCommandeProduit (idLigneCommande,idCommande, idProduit, idProducteur) 
+    VALUES ('LC6666666', 'CM3333333', 'PD8888888', 'PR4567890')
+  INTO LigneCommandeProduit (idLigneCommande,idCommande, idProduit, idProducteur) 
+    VALUES ('LC7777777', 'CM4444444', 'PD5555555', 'PR3456789')
+  INTO LigneCommandeProduit (idLigneCommande,idCommande, idProduit, idProducteur) 
+    VALUES ('LC8888888','CM4444444', 'PD9999999', 'PR5678901')
+  INTO LigneCommandeProduit (idLigneCommande, idCommande, idProduit, idProducteur) 
+    VALUES ('LC9999999','CM5555555', 'PD0000000', 'PR5678901')
 SELECT * FROM dual;
 
 -- Lignes Commande Produit Vrac
 INSERT ALL
-  INTO LigneCommandeProduitVrac (idLigneCommande, quantiteCommandeVrac) 
-    VALUES ('LC1111111', 2.0)
-  INTO LigneCommandeProduitVrac (idLigneCommande, quantiteCommandeVrac) 
-    VALUES ('LC7777777', 2.0)
+  INTO LigneCommandeProduitVrac (idLigneCommande, idCommande,  quantiteCommandeVrac) 
+    VALUES ('LC1111111', 'CM1111111', 2.0)
+  INTO LigneCommandeProduitVrac (idLigneCommande, idCommande, quantiteCommandeVrac) 
+    VALUES ('LC7777777', 'CM2222222', 2.0)
 SELECT * FROM dual;
 
 -- Lignes Commande Produit Préconditionné
 INSERT ALL
-  INTO LigneCommandeProduitPreconditionne (idLigneCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC2222222', 2)
-  INTO LigneCommandeProduitPreconditionne (idLigneCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC3333333', 2)
-  INTO LigneCommandeProduitPreconditionne (idLigneCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC4444444', 2)
-  INTO LigneCommandeProduitPreconditionne (idLigneCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC5555555', 2)
-  INTO LigneCommandeProduitPreconditionne (idLigneCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC6666666', 2)
-  INTO LigneCommandeProduitPreconditionne (idLigneCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC8888888', 2)
-  INTO LigneCommandeProduitPreconditionne (idLigneCommande, quantiteCommandePreconditionne) 
-    VALUES ('LC9999999', 2)
+  INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
+    VALUES ('LC2222222','CM3333333', 2)
+  INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
+    VALUES ('LC3333333', 'CM3333333', 2)
+  INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
+    VALUES ('LC4444444', 'CM4444444', 2)
+  INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
+    VALUES ('LC5555555', 'CM4444444', 2)
+  INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
+    VALUES ('LC6666666', 'CM5555555',  2)
+  INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
+    VALUES ('LC8888888', 'CM5555555', 2)
+  INTO LigneCommandeProduitPreconditionne (idLigneCommande, idCommande, quantiteCommandePreconditionne) 
+    VALUES ('LC9999999', 'CM2222222', 2)
 SELECT * FROM dual;
 
 -- ============================================
 -- 21. INSERTION LIGNE COMMANDE CONTENANT
 -- ============================================
-INSERT INTO LigneCommandeContenant (idLigneCommande, quantiteCommandeContenant) 
-  VALUES ('LC0000000', 2);
+INSERT INTO LigneCommandeContenant (idLigneCommande, idCommande, quantiteCommandeContenant) 
+  VALUES ('LC0000000', 'CM5555555', 2);
   
 -- ============================================
 -- 22. INSERTION DES PERTES
