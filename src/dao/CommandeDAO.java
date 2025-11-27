@@ -313,17 +313,17 @@ public class CommandeDAO {
      * @param idModeDeRecuperationDomicile L'identifiant du mode de récupération domicile
      * @param dateEstimee La date estimée de livraison
      */
-    private void updateDateEstimeeLivraison(String idModeDeRecuperationDomicile, LocalDate dateEstimee) {
-        String sql = "UPDATE ModeRecuperationDomicile SET dateEstimeeLivraison = ? WHERE idModeRecuperationDomicile = ?";
+    // private void updateDateEstimeeLivraison(String idModeDeRecuperationDomicile, LocalDate dateEstimee) {
+    //     String sql = "UPDATE ModeRecuperationDomicile SET dateEstimeeLivraison = ? WHERE idModeRecuperationDomicile = ?";
         
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setDate(1, java.sql.Date.valueOf(dateEstimee));
-            stmt.setString(2, idModeDeRecuperationDomicile);
+    //     try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+    //         stmt.setDate(1, java.sql.Date.valueOf(dateEstimee));
+    //         stmt.setString(2, idModeDeRecuperationDomicile);
             
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Erreur lors de la mise à jour de la date estimée de livraison:");
-            e.printStackTrace();
-        }
-    }
+    //         stmt.executeUpdate();
+    //     } catch (SQLException e) {
+    //         System.err.println("Erreur lors de la mise à jour de la date estimée de livraison:");
+    //         e.printStackTrace();
+    //     }
+    // }
 }

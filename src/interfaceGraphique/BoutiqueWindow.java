@@ -1,3 +1,4 @@
+package interfaceGraphique;
 import javax.swing.*;
 import java.awt.*;
 
@@ -78,6 +79,28 @@ public class BoutiqueWindow extends JFrame {
     }
 
     public static void main(String[] args) {
-        new BoutiqueWindow();
+        // Initialisation de la connexion à la base de données
+        try {
+            new config.JdbcDriverLoader();
+            config.DataSourceProvider.initConnection();
+            
+            if (config.DataSourceProvider.getConnection() == null) {
+                javax.swing.JOptionPane.showMessageDialog(null,
+                    "Erreur: Impossible de se connecter à la base de données",
+                    "Erreur de connexion",
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            }
+            
+            new BoutiqueWindow();
+            
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(null,
+                "Erreur lors de l'initialisation: " + e.getMessage(),
+                "Erreur",
+                javax.swing.JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 }
