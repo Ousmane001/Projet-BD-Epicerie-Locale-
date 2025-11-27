@@ -1,5 +1,8 @@
 package dao;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,33 +27,24 @@ public class CatagueDAO {
     public List<ProduitCatalogue> getTousLesProduits() {
         List<ProduitCatalogue> produits = new ArrayList<>();
         
-        String sql = "SELECT DISTINCT " +
-                     "    p.idProduit, " +
-                     "    p.idProducteur, " +
-                     "    p.nomProduit, " +
-                     "    p.categorie, " +
-                     "    p.description, " +
-                     "    p.bio, " +
-                     "    p.label, " +
-                     "    p.allergene, " +
-                     "    p.origineGeographique, " +
-                     "    p.delaiDisponibilite, " +
-                     "    c.prixVenteClient, " +
-                     "    CASE " +
-                     "        WHEN cv.idConditionnement IS NOT NULL THEN 'Vrac' " +
-                     "        WHEN cp.idConditionnement IS NOT NULL THEN 'Préconditionné' " +
-                     "        ELSE 'N/A' " +
-                     "    END AS typeConditionnement, " +
-                     "    cp.poidsSachet, " +
-                     "    d.statutProduit " +
-                     "FROM Produit p " +
-                     "JOIN Conditionnement c ON p.idProduit = c.idProduit AND p.idProducteur = c.idProducteur " +
-                     "LEFT JOIN ConditionnementVrac cv ON c.idConditionnement = cv.idConditionnement " +
-                     "LEFT JOIN ConditionnementPreconditionne cp ON c.idConditionnement = cp.idConditionnement " +
-                     "LEFT JOIN ProduitEstDisponible ped ON p.idProduit = ped.idProduit AND p.idProducteur = ped.idProducteur " +
-                     "LEFT JOIN Disponibilite d ON ped.idDisponibilite = d.idDisponibilite " +
-                     "WHERE d.statutProduit = 'Disponible' OR d.statutProduit IS NULL " +
-                     "ORDER BY p.categorie, p.nomProduit";
+        String sql = "SELECT p.idProduit, p.idProducteur, p.nomProduit, p.categorie, " +
+             "p.description, p.bio, p.label, p.allergene, p.origineGeographique, " +
+             "p.delaiDisponibilite, c.prixVenteClient, " +
+             "CASE " +
+                 "WHEN cv.idConditionnement IS NOT NULL THEN 'Vrac' " +
+                 "WHEN cp.idConditionnement IS NOT NULL THEN 'Préconditionné' " +
+                 "ELSE 'N/A' " +
+             "END AS typeConditionnement, " +
+             "cp.poidsSachet, " +
+             "d.statutProduit " +
+             "FROM Produit p " +
+             "JOIN Conditionnement c ON p.idProduit = c.idProduit AND p.idProducteur = c.idProducteur " +
+             "LEFT JOIN ConditionnementVrac cv ON c.idConditionnement = cv.idConditionnement " +
+             "LEFT JOIN ConditionnementPreconditionne cp ON c.idConditionnement = cp.idConditionnement " +
+             "LEFT JOIN ProduitEstDisponible ped ON p.idProduit = ped.idProduit AND p.idProducteur = ped.idProducteur " +
+             "LEFT JOIN Disponibilite d ON ped.idDisponibilite = d.idDisponibilite " +
+             "ORDER BY p.categorie, p.nomProduit";
+
         
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -61,10 +55,14 @@ public class CatagueDAO {
                 produit.setIdProducteur(rs.getString("idProducteur"));
                 produit.setNomProduit(rs.getString("nomProduit"));
                 produit.setCategorie(rs.getString("categorie"));
-                produit.setDescription(rs.getString("description"));
+                //Clob description = rs.getClob("description");
+                //produit.setDescription(description.getSubString(1, (int)description.length()));
+                produit.setAllergene(getClobAsString(rs.getClob("description")));
                 produit.setBio(rs.getString("bio"));
                 produit.setLabel(rs.getString("label"));
-                produit.setAllergene(rs.getString("allergene"));
+                //Clob allergene = rs.getClob("allergene");
+                //produit.setAllergene(allergene.getSubString(1, (int)allergene.length() ));
+                produit.setAllergene(getClobAsString(rs.getClob("allergene")));
                 produit.setOrigineGeographique(rs.getString("origineGeographique"));
                 
                 Integer delai = rs.getInt("delaiDisponibilite");
@@ -90,6 +88,27 @@ public class CatagueDAO {
         
         return produits;
     }
+
+
+    public String getClobAsString(Clob clob) {
+    String result = "";
+    if (clob != null) {
+        try (Reader reader = clob.getCharacterStream()) {
+            char[] buffer = new char[1024];
+            int length;
+            StringBuilder sb = new StringBuilder();
+            while ((length = reader.read(buffer)) != -1) {
+                sb.append(buffer, 0, length);
+            }
+            result = sb.toString();
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            // Gestion des erreurs : afficher ou logger l'exception
+        }
+    }
+    return result;
+}
+
 
     /**
      * Récupère les produits filtrés par catégorie
@@ -137,10 +156,12 @@ public class CatagueDAO {
                     produit.setIdProducteur(rs.getString("idProducteur"));
                     produit.setNomProduit(rs.getString("nomProduit"));
                     produit.setCategorie(rs.getString("categorie"));
-                    produit.setDescription(rs.getString("description"));
+                    Clob description = rs.getClob("description");
+                    produit.setDescription(description.getSubString(1, (int)description.length()));
                     produit.setBio(rs.getString("bio"));
                     produit.setLabel(rs.getString("label"));
-                    produit.setAllergene(rs.getString("allergene"));
+                    Clob allergene = rs.getClob("allergene");
+                    produit.setAllergene(allergene.getSubString(1, (int)allergene.length() ));
                     produit.setOrigineGeographique(rs.getString("origineGeographique"));
                     
                     Integer delai = rs.getInt("delaiDisponibilite");
@@ -236,10 +257,12 @@ public class CatagueDAO {
                     produit.setIdProducteur(rs.getString("idProducteur"));
                     produit.setNomProduit(rs.getString("nomProduit"));
                     produit.setCategorie(rs.getString("categorie"));
-                    produit.setDescription(rs.getString("description"));
+                    Clob description = rs.getClob("description");
+                    produit.setDescription(description.getSubString(1, (int)description.length()));
                     produit.setBio(rs.getString("bio"));
                     produit.setLabel(rs.getString("label"));
-                    produit.setAllergene(rs.getString("allergene"));
+                    Clob allergene = rs.getClob("allergene");
+                    produit.setAllergene(allergene.getSubString(1, (int)allergene.length() ));
                     produit.setOrigineGeographique(rs.getString("origineGeographique"));
                     
                     Integer delai = rs.getInt("delaiDisponibilite");
@@ -310,10 +333,12 @@ public class CatagueDAO {
                     produit.setIdProducteur(rs.getString("idProducteur"));
                     produit.setNomProduit(rs.getString("nomProduit"));
                     produit.setCategorie(rs.getString("categorie"));
-                    produit.setDescription(rs.getString("description"));
+                    Clob description = rs.getClob("description");
+                    produit.setDescription(description.getSubString(1, (int)description.length()));
                     produit.setBio(rs.getString("bio"));
                     produit.setLabel(rs.getString("label"));
-                    produit.setAllergene(rs.getString("allergene"));
+                    Clob allergene = rs.getClob("allergene");
+                    produit.setAllergene(allergene.getSubString(1, (int)allergene.length() ));
                     produit.setOrigineGeographique(rs.getString("origineGeographique"));
                     
                     Integer delai = rs.getInt("delaiDisponibilite");

@@ -137,13 +137,13 @@ public class ConsulterCatalogue {
             System.out.println("Origine: " + produit.getOrigineGeographique());
         }
         
-        if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
-            System.out.println("Description: " + produit.getDescription());
-        }
+        // if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
+        //     System.out.println("Description: " + produit.getDescription());
+        // }
         
-        if (produit.getAllergene() != null && !produit.getAllergene().isEmpty()) {
-            System.out.println("Allergènes: " + produit.getAllergene());
-        }
+        // if (produit.getAllergene() != null && !produit.getAllergene().isEmpty()) {
+        //     System.out.println("Allergènes: " + produit.getAllergene());
+        // }
         
         if (produit.getDelaiDisponibilite() != null && produit.getDelaiDisponibilite() > 0) {
             System.out.println("Délai de disponibilité: " + produit.getDelaiDisponibilite() + " jours");
