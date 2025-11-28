@@ -68,7 +68,7 @@ public class Commande extends JFrame {
 
         txtPrix = new JTextField();
         txtPrix.setEditable(false);
-        txtPrix.setText(produits[0][1] + " €");
+        txtPrix.setText(produits[0][1] + " eur");
 
         txtQuantite = new JTextField("1");
 

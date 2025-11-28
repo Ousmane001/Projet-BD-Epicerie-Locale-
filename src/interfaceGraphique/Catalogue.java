@@ -49,11 +49,35 @@ public class Catalogue extends JFrame {
         JLabel lblRecherche = new JLabel("Rechercher:");
         txtRecherche = new JTextField(20);
         JButton btnRechercher = new JButton("Rechercher");
-        btnRechercher.setBackground(new Color(70, 130, 180));
+        Color bleuRecherche = new Color(70, 130, 180);
+        btnRechercher.setBackground(bleuRecherche);
         btnRechercher.setForeground(Color.WHITE);
+        btnRechercher.setFont(new Font("Arial", Font.BOLD, 14));
+        btnRechercher.setOpaque(true);
+        btnRechercher.setContentAreaFilled(true);
+        btnRechercher.setBorderPainted(true);
+        btnRechercher.setFocusPainted(false);
+        btnRechercher.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bleuRecherche.darker(), 2),
+            BorderFactory.createEmptyBorder(8, 15, 8, 15)
+        ));
+        btnRechercher.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnRechercher.addActionListener(e -> rechercherProduits());
 
         JButton btnReinitialiser = new JButton("Réinitialiser");
+        Color grisReinit = new Color(120, 120, 120);
+        btnReinitialiser.setBackground(grisReinit);
+        btnReinitialiser.setForeground(Color.WHITE);
+        btnReinitialiser.setFont(new Font("Arial", Font.BOLD, 14));
+        btnReinitialiser.setOpaque(true);
+        btnReinitialiser.setContentAreaFilled(true);
+        btnReinitialiser.setBorderPainted(true);
+        btnReinitialiser.setFocusPainted(false);
+        btnReinitialiser.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(grisReinit.darker(), 2),
+            BorderFactory.createEmptyBorder(8, 15, 8, 15)
+        ));
+        btnReinitialiser.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnReinitialiser.addActionListener(e -> reinitialiserAffichage());
 
         panelFiltres.add(lblCategorie);
@@ -121,19 +145,52 @@ public class Catalogue extends JFrame {
         JButton btnRetour = new JButton("Retour");
         JButton btnQuitter = new JButton("Quitter");
 
-        btnDetails.setBackground(new Color(34, 139, 34));
+        Color vertDetails = new Color(34, 139, 34);
+        btnDetails.setBackground(vertDetails);
         btnDetails.setForeground(Color.WHITE);
+        btnDetails.setFont(new Font("Arial", Font.BOLD, 16));
+        btnDetails.setOpaque(true);
+        btnDetails.setContentAreaFilled(true);
+        btnDetails.setBorderPainted(true);
+        btnDetails.setFocusPainted(false);
+        btnDetails.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(vertDetails.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
+        btnDetails.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnDetails.addActionListener(e -> afficherDetailsProduit());
 
-        btnRetour.setBackground(new Color(70, 130, 180));
+        Color bleuRetour = new Color(70, 130, 180);
+        btnRetour.setBackground(bleuRetour);
         btnRetour.setForeground(Color.WHITE);
+        btnRetour.setFont(new Font("Arial", Font.BOLD, 16));
+        btnRetour.setOpaque(true);
+        btnRetour.setContentAreaFilled(true);
+        btnRetour.setBorderPainted(true);
+        btnRetour.setFocusPainted(false);
+        btnRetour.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bleuRetour.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
+        btnRetour.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnRetour.addActionListener(e -> {
-            new BoutiqueWindow();
+            new MenuPrincipal();
             dispose();
         });
 
-        btnQuitter.setBackground(new Color(220, 80, 60));
+        Color rougeQuitter = new Color(220, 80, 60);
+        btnQuitter.setBackground(rougeQuitter);
         btnQuitter.setForeground(Color.WHITE);
+        btnQuitter.setFont(new Font("Arial", Font.BOLD, 16));
+        btnQuitter.setOpaque(true);
+        btnQuitter.setContentAreaFilled(true);
+        btnQuitter.setBorderPainted(true);
+        btnQuitter.setFocusPainted(false);
+        btnQuitter.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(rougeQuitter.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
+        btnQuitter.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnQuitter.addActionListener(e -> System.exit(0));
 
         // ----------- PANELS ------------

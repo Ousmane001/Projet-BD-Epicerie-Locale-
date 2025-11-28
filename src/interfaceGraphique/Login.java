@@ -18,9 +18,9 @@ public class Login extends JFrame {
 
         // ---- Champ de texte agrandi ----
         txtLogin = new JTextField();
-        txtLogin.setFont(new Font("Arial", Font.PLAIN, 16));  // texte visible
-        txtLogin.setColumns(20);                               // largeur
-        txtLogin.setPreferredSize(new Dimension(250, 35));     // hauteur suffisante
+        txtLogin.setFont(new Font("Arial", Font.PLAIN, 16));  
+        txtLogin.setColumns(20);                               
+        txtLogin.setPreferredSize(new Dimension(250, 35));     
         txtLogin.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200)),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)

@@ -14,7 +14,7 @@ import java.awt.*;
 public class MenuPrincipal extends JFrame {
 
     public MenuPrincipal() {
-        setTitle("Épicerie Locale - Menu Principal");
+        setTitle("Épicerie Au Valaisan - Menu Principal");
         setSize(700, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -26,7 +26,7 @@ public class MenuPrincipal extends JFrame {
         mainPanel.setBackground(new Color(240, 245, 250));
 
         // Titre
-        JLabel titre = new JLabel("🛒 Épicerie Locale", SwingConstants.CENTER);
+        JLabel titre = new JLabel(" Épicerie Au Valaisan", SwingConstants.CENTER);
         titre.setFont(new Font("Arial", Font.BOLD, 32));
         titre.setForeground(new Color(60, 130, 180));
         titre.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
@@ -46,19 +46,19 @@ public class MenuPrincipal extends JFrame {
         centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
         // Créer les boutons avec icônes et style amélioré
-        JButton btnCatalogue = creerBoutonMenu("📖 Consulter le Catalogue", 
+        JButton btnCatalogue = creerBoutonMenu(" Consulter le Catalogue", 
             "Voir tous les produits disponibles", new Color(70, 130, 180));
         
-        JButton btnCommander = creerBoutonMenu("🛒 Passer une Commande", 
+        JButton btnCommander = creerBoutonMenu(" Passer une Commande", 
             "Commander des produits", new Color(60, 179, 113));
         
-        JButton btnAlertes = creerBoutonMenu("⚠️ Alertes de Péremption", 
+        JButton btnAlertes = creerBoutonMenu(" Alertes de Péremption", 
             "Voir les produits proches de la péremption", new Color(255, 140, 0));
         
-        JButton btnCloture = creerBoutonMenu("✅ Clôturer une Commande", 
+        JButton btnCloture = creerBoutonMenu(" Clôturer une Commande", 
             "Finaliser le retrait ou la livraison", new Color(138, 43, 226));
         
-        JButton btnQuitter = creerBoutonMenu("❌ Quitter", 
+        JButton btnQuitter = creerBoutonMenu(" Quitter", 
             "Fermer l'application", new Color(220, 80, 60));
 
         // Actions des boutons
@@ -92,7 +92,7 @@ public class MenuPrincipal extends JFrame {
             if (choix == JOptionPane.YES_OPTION) {
                 // Fermer la connexion à la base de données
                 config.DataSourceProvider.closeConnection();
-                System.out.println("\n👋 Au revoir ! Merci d'avoir utilisé l'Épicerie Locale.");
+                System.out.println("\n Au revoir ! Merci d'avoir utilisé l'Épicerie Locale.");
                 System.exit(0);
             }
         });

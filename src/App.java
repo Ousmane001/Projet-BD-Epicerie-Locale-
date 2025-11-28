@@ -10,30 +10,27 @@ import javax.swing.*;
  */
 public class App {
     public static void main(String[] args) {
-        System.out.println("╔════════════════════════════════════════════════╗");
-        System.out.println("║   Bienvenue dans l'Épicerie Locale - v1.0     ║");
-        System.out.println("╚════════════════════════════════════════════════╝\n");
 
         try {
             // 1. Charger le driver JDBC
-            System.out.println("⏳ Chargement du driver JDBC...");
+            System.out.println(" Chargement du driver JDBC...");
             new JdbcDriverLoader();
-            System.out.println("✓ Driver JDBC chargé avec succès\n");
+            System.out.println(" Driver JDBC chargé avec succès\n");
 
             // 2. Initialiser la connexion à la base de données
-            System.out.println("⏳ Connexion à la base de données Oracle...");
+            System.out.println(" Connexion à la base de données Oracle...");
             DataSourceProvider.initConnection();
             
             if (DataSourceProvider.getConnection() == null) {
                 throw new Exception("La connexion à la base de données a échoué");
             }
-            System.out.println("✓ Connexion établie avec succès\n");
+            System.out.println(" Connexion établie avec succès\n");
 
             // 3. Désactiver l'autocommit pour gérer les transactions manuellement
             DataSourceProvider.getConnection().setAutoCommit(false);
-            System.out.println("✓ Mode transaction activé (autocommit=false)\n");
+            System.out.println(" Mode transaction activé (autocommit=false)\n");
 
-            System.out.println("🚀 Lancement de l'interface graphique...\n");
+            System.out.println(" Lancement de l'interface graphique...\n");
             
             // 4. Lancer l'interface graphique dans le thread EDT (Event Dispatch Thread)
             SwingUtilities.invokeLater(() -> {
@@ -41,7 +38,7 @@ public class App {
                     // Définir le Look and Feel du système pour une meilleure intégration
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                 } catch (Exception e) {
-                    System.err.println("⚠ Impossible de définir le Look and Feel système");
+                    System.err.println(" Impossible de définir le Look and Feel système");
                 }
                 
                 // Lancer le menu principal
@@ -49,7 +46,7 @@ public class App {
             });
 
         } catch (Exception e) {
-            System.err.println("\n❌ ERREUR CRITIQUE lors de l'initialisation:");
+            System.err.println("\n ERREUR CRITIQUE lors de l'initialisation:");
             System.err.println("   " + e.getMessage());
             e.printStackTrace();
             

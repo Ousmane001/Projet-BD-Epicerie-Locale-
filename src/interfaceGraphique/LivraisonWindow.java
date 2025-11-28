@@ -85,7 +85,7 @@ public class LivraisonWindow extends JFrame {
                 double distance = Double.parseDouble(txtDistance.getText());
                 double cout = prix + distance * 0.50;
 
-                txtCout.setText(String.format("%.2f €", cout));
+                txtCout.setText(String.format("%.2f eur", cout));
             } catch (Exception ex) {
                 txtCout.setText("");
             }

@@ -32,7 +32,7 @@ public class ClotureCommandeWindow extends JFrame {
         mainPanel.setBackground(new Color(240, 245, 250));
 
         // En-tête
-        JLabel titre = new JLabel("✅ Clôture de Commande");
+        JLabel titre = new JLabel(" Clôture de Commande");
         titre.setFont(new Font("Arial", Font.BOLD, 24));
         titre.setForeground(new Color(138, 43, 226));
         titre.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
@@ -68,7 +68,7 @@ public class ClotureCommandeWindow extends JFrame {
             BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
 
-        JButton btnConsulter = new JButton("🔍 Consulter");
+        JButton btnConsulter = new JButton(" Consulter");
         styleButton(btnConsulter, new Color(70, 130, 180));
         btnConsulter.addActionListener(e -> consulterCommande());
 
@@ -105,18 +105,18 @@ public class ClotureCommandeWindow extends JFrame {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         btnPanel.setBackground(new Color(240, 245, 250));
 
-        JButton btnCloturer = new JButton("✅ Clôturer la Commande");
+        JButton btnCloturer = new JButton(" Clôturer la Commande");
         styleButton(btnCloturer, new Color(60, 179, 113));
         btnCloturer.addActionListener(e -> cloturerCommande());
 
-        JButton btnRetour = new JButton("← Retour");
+        JButton btnRetour = new JButton(" Retour");
         styleButton(btnRetour, new Color(120, 120, 120));
         btnRetour.addActionListener(e -> {
             new MenuPrincipal();
             dispose();
         });
 
-        JButton btnQuitter = new JButton("❌ Quitter");
+        JButton btnQuitter = new JButton(" Quitter");
         styleButton(btnQuitter, new Color(220, 80, 60));
         btnQuitter.addActionListener(e -> System.exit(0));
 
@@ -172,9 +172,9 @@ public class ClotureCommandeWindow extends JFrame {
             sb.append("═══════════════════════════════════════════════\n");
             sb.append("   INFORMATIONS COMMANDE #").append(idCommande).append("\n");
             sb.append("═══════════════════════════════════════════════\n\n");
-            sb.append("📋 Statut actuel:     ").append(statut).append("\n");
-            sb.append("💳 Mode de paiement:  ").append(modePaiement).append("\n");
-            sb.append("📦 Mode récupération: ").append(modeRecup).append("\n\n");
+            sb.append(" Statut actuel:     ").append(statut).append("\n");
+            sb.append(" Mode de paiement:  ").append(modePaiement).append("\n");
+            sb.append(" Mode récupération: ").append(modeRecup).append("\n\n");
 
             if ("Domicile".equals(modeRecup)) {
                 String idModeLivraison = commandeDAO.recupIdInfoLivraison(idCommande);
@@ -182,28 +182,28 @@ public class ClotureCommandeWindow extends JFrame {
                     int fraisLivraison = commandeDAO.calculFraisDeLivraison(idModeLivraison);
                     LocalDate dateEstimee = commandeDAO.calculDateEstimeeDeLivraison(idModeLivraison);
 
-                    sb.append("🚚 INFORMATIONS DE LIVRAISON\n");
+                    sb.append(" INFORMATIONS DE LIVRAISON\n");
                     sb.append("───────────────────────────────────────────────\n");
-                    sb.append("💰 Frais de livraison:  ").append(fraisLivraison).append(" €\n");
-                    sb.append("📅 Date estimée:        ").append(dateEstimee).append("\n\n");
+                    sb.append(" Frais de livraison:  ").append(fraisLivraison).append(" eur\n");
+                    sb.append(" Date estimée:        ").append(dateEstimee).append("\n\n");
                 }
             }
 
             sb.append("═══════════════════════════════════════════════\n");
-            sb.append("\n⚠️  NOTES:\n");
+            sb.append("\n  NOTES:\n");
             
             if ("En préparation".equals(statut)) {
-                sb.append("• La commande est en cours de préparation\n");
+                sb.append(" La commande est en cours de préparation\n");
             } else if ("Prête".equals(statut)) {
-                sb.append("• La commande est prête pour le retrait/livraison\n");
+                sb.append(" La commande est prête pour le retrait/livraison\n");
             } else if ("Récupérée/Livrée".equals(statut)) {
-                sb.append("• Cette commande a déjà été clôturée\n");
+                sb.append(" Cette commande a déjà été clôturée\n");
             }
 
             if ("En Boutique".equals(modePaiement)) {
-                sb.append("• Le paiement sera effectué en boutique\n");
+                sb.append(" Le paiement sera effectué en boutique\n");
             } else {
-                sb.append("• Le paiement a été effectué en ligne\n");
+                sb.append(" Le paiement a été effectué en ligne\n");
             }
 
             txtInfos.setText(sb.toString());
@@ -257,12 +257,12 @@ public class ClotureCommandeWindow extends JFrame {
 
             } catch (IllegalStateException e) {
                 JOptionPane.showMessageDialog(this,
-                    "❌ Erreur lors de la clôture:\n" + e.getMessage(),
+                    " Erreur lors de la clôture:\n" + e.getMessage(),
                     "Erreur",
                     JOptionPane.ERROR_MESSAGE);
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this,
-                    "❌ Erreur inattendue:\n" + e.getMessage(),
+                    " Erreur inattendue:\n" + e.getMessage(),
                     "Erreur",
                     JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
@@ -276,9 +276,15 @@ public class ClotureCommandeWindow extends JFrame {
     private void styleButton(JButton btn, Color couleur) {
         btn.setBackground(couleur);
         btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Arial", Font.BOLD, 14));
+        btn.setFont(new Font("Arial", Font.BOLD, 16));
+        btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
+        btn.setBorderPainted(true);
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
+        btn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(couleur.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 25, 12, 25)
+        ));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btn.addMouseListener(new java.awt.event.MouseAdapter() {

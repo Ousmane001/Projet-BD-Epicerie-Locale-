@@ -39,7 +39,7 @@ public class AlertesPeremptionWindow extends JFrame {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(240, 245, 250));
 
-        JLabel titre = new JLabel("⚠️ Alertes de Péremption");
+        JLabel titre = new JLabel(" Alertes de Péremption");
         titre.setFont(new Font("Arial", Font.BOLD, 24));
         titre.setForeground(new Color(255, 140, 0));
 
@@ -94,10 +94,10 @@ public class AlertesPeremptionWindow extends JFrame {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         btnPanel.setBackground(new Color(240, 245, 250));
 
-        JButton btnActualiser = creerBouton("🔄 Actualiser", new Color(70, 130, 180));
-        JButton btnAppliquerReduction = creerBouton("💰 Appliquer Réduction", new Color(60, 179, 113));
-        JButton btnRetour = creerBouton("← Retour", new Color(120, 120, 120));
-        JButton btnQuitter = creerBouton("❌ Quitter", new Color(220, 80, 60));
+        JButton btnActualiser = creerBouton(" Actualiser", new Color(70, 130, 180));
+        JButton btnAppliquerReduction = creerBouton(" Appliquer Réduction", new Color(60, 179, 113));
+        JButton btnRetour = creerBouton(" Retour", new Color(120, 120, 120));
+        JButton btnQuitter = creerBouton(" Quitter", new Color(220, 80, 60));
 
         btnActualiser.addActionListener(e -> chargerAlertes());
 
@@ -142,7 +142,7 @@ public class AlertesPeremptionWindow extends JFrame {
             for (AlertePeremption alerte : alertes) {
                 String nomProduit = "Produit " + alerte.getIdProduit(); // TODO: récupérer le vrai nom
                 String reduction = String.format("%.0f%%", alerte.getReductionProposee() * 100);
-                String statut = alerte.getJoursRestants() <= 3 ? "🔴 URGENT" : "🟡 Attention";
+                String statut = alerte.getJoursRestants() <= 3 ? " URGENT" : " Attention";
 
                 model.addRow(new Object[]{
                     alerte.getIdLot(),
@@ -229,9 +229,15 @@ public class AlertesPeremptionWindow extends JFrame {
         JButton btn = new JButton(texte);
         btn.setBackground(couleur);
         btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Arial", Font.BOLD, 14));
+        btn.setFont(new Font("Arial", Font.BOLD, 16));
+        btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
+        btn.setBorderPainted(true);
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(12, 25, 12, 25));
+        btn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(couleur.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 25, 12, 25)
+        ));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Effet au survol
