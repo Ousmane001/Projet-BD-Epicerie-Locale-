@@ -11,48 +11,62 @@ public class ConditionnementDAO {
 
     public void appliquerReduction(String idProduit, String idProducteur) throws SQLException {
 
-    Connection conn = DataSourceProvider.getConnection();
-    conn.setAutoCommit(false);
+        Connection conn = DataSourceProvider.getConnection();
 
-    // 1. Lecture et verrouillage de la ligne
-    PreparedStatement ps1 = conn.prepareStatement("""
-        SELECT prixVenteClient
-        FROM Conditionnement
-        WHERE idProduit = ? AND idProducteur = ?
-        FOR UPDATE
-    """);
+        if (conn == null)
+            throw new SQLException("Connexion null dans ConditionnementDAO");
 
-    ps1.setString(1, idProduit);
-    ps1.setString(2, idProducteur);
+        boolean oldAutoCommit = conn.getAutoCommit();
+        conn.setAutoCommit(false);
 
-    ResultSet rs = ps1.executeQuery();
-    double prixActuel = 0;
+        double prixActuel;
 
-    if (rs.next()) {
-        prixActuel = rs.getDouble("prixVenteClient");
+        try (
+            PreparedStatement ps1 = conn.prepareStatement("""
+                SELECT prixVenteClient
+                FROM Conditionnement
+                WHERE idProduit = ? AND idProducteur = ?
+                FOR UPDATE
+            """)
+        ) {
+            ps1.setString(1, idProduit);
+            ps1.setString(2, idProducteur);
+
+            try (ResultSet rs = ps1.executeQuery()) {
+                if (!rs.next()) {
+                    throw new SQLException(
+                        "Aucun conditionnement trouvé pour produit=" + idProduit +
+                        " producteur=" + idProducteur
+                    );
+                }
+                prixActuel = rs.getDouble("prixVenteClient");
+            }
+        }
+
+        // Mise à jour après verrouillage
+        try (
+            PreparedStatement ps2 = conn.prepareStatement("""
+                UPDATE Conditionnement
+                SET prixVenteClient = ROUND(? * 0.7, 2)
+                WHERE idProduit = ? AND idProducteur = ?
+            """)
+        ) {
+            ps2.setDouble(1, prixActuel);
+            ps2.setString(2, idProduit);
+            ps2.setString(3, idProducteur);
+
+            int updated = ps2.executeUpdate();
+
+            if (updated == 0) {
+                throw new SQLException("Échec mise à jour prix : ligne non trouvée");
+            }
+
+            conn.commit();
+        } catch (SQLException ex) {
+            conn.rollback();
+            throw ex;
+        } finally {
+            conn.setAutoCommit(oldAutoCommit);
+        }
     }
-
-    // 2. Mise à jour sécurisée
-    PreparedStatement ps2 = conn.prepareStatement("""
-        UPDATE Conditionnement
-        SET prixVenteClient = ROUND(? * 0.7, 2)
-        WHERE idProduit = ? AND idProducteur = ?
-    """);
-
-    ps2.setDouble(1, prixActuel);
-    ps2.setString(2, idProduit);
-    ps2.setString(3, idProducteur);
-    ps2.executeUpdate();
-    //int rows = ps2.executeUpdate();
-    
-
-
-    conn.commit();
-    
-
-
-    rs.close();
-    ps1.close();
-    ps2.close();
-}
 }

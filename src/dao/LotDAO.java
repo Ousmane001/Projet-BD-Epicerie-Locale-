@@ -28,29 +28,30 @@ public class LotDAO {
         """;
 
         Connection conn = DataSourceProvider.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery();
 
-        List<AlertePeremption> alertes = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()) {
 
-        while (rs.next()) {
-            AlertePeremption a = new AlertePeremption();
-            a.setIdLot(rs.getString("idLot"));
-            a.setIdProduit(rs.getString("idProduit"));
-            a.setIdProducteur(rs.getString("idProducteur"));
-            a.setNomProduit(rs.getString("nomProduit"));
+            List<AlertePeremption> alertes = new ArrayList<>();
 
-            Date dl = rs.getDate("dateLimite");
-            if (dl != null) a.setDateLimite(dl.toLocalDate());
+            while (rs.next()) {
+                AlertePeremption a = new AlertePeremption();
 
-            a.setJoursRestants(rs.getInt("joursRestants"));
+                a.setIdLot(rs.getString("idLot"));
+                a.setIdProduit(rs.getString("idProduit"));
+                a.setIdProducteur(rs.getString("idProducteur"));
+                a.setNomProduit(rs.getString("nomProduit"));
+                a.setJoursRestants(rs.getInt("joursRestants"));
 
-            alertes.add(a);
+                Date dl = rs.getDate("dateLimite");
+                if (dl != null) a.setDateLimite(dl.toLocalDate());
+
+                alertes.add(a);
+            }
+
+            return alertes;
         }
-
-        rs.close();
-        stmt.close();
-        return alertes;
     }
+
 
 }
