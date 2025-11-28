@@ -15,8 +15,8 @@ public class DataSourceProvider {
                 // Vous devez avoir fait new JdbcDriverLoader() AVANT
                 connection = DriverManager.getConnection(
                     "jdbc:oracle:thin:@oracle1.ensimag.fr:1521:oracle1",  
-                    "mengossn",        // si on a le temps, on mettra les id dans un fichier .env pour rendre faciliter nos tests     
-                    "mengossn"                             
+                    "diakitao",        // si on a le temps, on mettra les id dans un fichier .env pour rendre faciliter nos tests     
+                    "diakitao"                             
                 );
                 System.out.println(">> Connexion à Oracle établie !");
             } catch (SQLException e) {

@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class AlertePeremption {
     private String idLot;
@@ -9,6 +10,7 @@ public class AlertePeremption {
     private int joursRestants;
     private double reductionProposee = 0.30;
     private LocalDate dateAlerte = LocalDate.now();
+    private LocalDate dateLimite;
 
     public AlertePeremption() {}
 
@@ -27,4 +29,11 @@ public class AlertePeremption {
 
     public double getReductionProposee() { return reductionProposee; }
     public LocalDate getDateAlerte() { return dateAlerte; }
+
+    public LocalDate getLocalDateTime(){
+        return dateLimite;
+    };
+    public void setDateLimite(LocalDate d) {
+        this.dateLimite = d;
+    }
 }

@@ -183,7 +183,7 @@ SELECT * FROM dual;
 -- ============================================
 INSERT ALL
   INTO Lot (idLot, dateReception, dateLimite, typeDateLimite, idStock) 
-  VALUES ('LT1111111', TO_DATE('2025-11-01', 'YYYY-MM-DD'), TO_DATE('2026-05-01', 'YYYY-MM-DD'), 'DLUO', 'ST1111111')
+  VALUES ('LT1111111', TO_DATE(CURRENT_DATE - 3), TO_DATE(CURRENT_DATE + 2), 'DLUO', 'ST1111111')
   INTO Lot (idLot, dateReception, dateLimite, typeDateLimite, idStock) 
   VALUES ('LT2222222', TO_DATE('2025-11-15', 'YYYY-MM-DD'), TO_DATE('2025-11-25', 'YYYY-MM-DD'), 'DLC', 'ST2222222')
   INTO Lot (idLot, dateReception, dateLimite, typeDateLimite, idStock) 
