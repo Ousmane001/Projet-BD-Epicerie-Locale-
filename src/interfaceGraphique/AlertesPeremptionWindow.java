@@ -52,7 +52,7 @@ public class AlertesPeremptionWindow extends JFrame {
 
         // Table des alertes
         model = new DefaultTableModel(
-            new String[]{"ID Lot", "ID Produit", "Produit", "Jours Restants", "Date Limite", "Réduction", "Statut"}, 0
+            new String[]{"ID Lot", "ID Produit", "ID Producteur", "Produit", "Jours Restants", "Date Limite", "Réduction", "Statut"}, 0
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -145,14 +145,16 @@ public class AlertesPeremptionWindow extends JFrame {
                 String statut = alerte.getJoursRestants() <= 3 ? " URGENT" : " Attention";
 
                 model.addRow(new Object[]{
-                    alerte.getIdLot(),
-                    alerte.getIdProduit(),
-                    nomProduit,
-                    alerte.getJoursRestants() + " jour(s)",
-                    alerte.getDateAlerte().plusDays(alerte.getJoursRestants()),
-                    reduction,
-                    statut
-                });
+    alerte.getIdLot(),
+    alerte.getIdProduit(),
+    alerte.getIdProducteur(),       // <-- IMPORTANT
+    alerte.getNomProduit(),         // vrai nom du produit !
+    alerte.getJoursRestants() + " jour(s)",
+    alerte.getDateLimite(),
+    reduction,
+    statut
+});
+;
             }
 
             if (alertes.isEmpty()) {
@@ -175,52 +177,51 @@ public class AlertesPeremptionWindow extends JFrame {
      * Applique la réduction sur l'alerte sélectionnée
      */
     private void appliquerReductionSelectionnee() {
-        int selectedRow = table.getSelectedRow();
+    int row = table.getSelectedRow();
 
-        if (selectedRow == -1) {
+    if (row == -1) {
+        JOptionPane.showMessageDialog(this,
+            "Veuillez sélectionner une alerte.",
+            "Sélection requise",
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    String idLot = (String) model.getValueAt(row, 0);
+    String idProduit = (String) model.getValueAt(row, 1);
+    String idProducteur = (String) model.getValueAt(row, 2); // <-- récupéré dans la table
+
+    System.out.println("DEBUG → idProduit=" + idProduit);
+    System.out.println("DEBUG → idProducteur=" + idProducteur);
+
+    int choix = JOptionPane.showConfirmDialog(this,
+        "Voulez-vous appliquer une réduction de 30 % ?\n\n" +
+        "Lot : " + idLot + "\n" +
+        "Produit : " + idProduit + "\n" +
+        "Producteur : " + idProducteur,
+        "Confirmation",
+        JOptionPane.YES_NO_OPTION);
+
+    if (choix == JOptionPane.YES_OPTION) {
+        try {
+            AlertePeremption alerte = new AlertePeremption();
+            alerte.setIdLot(idLot);
+            alerte.setIdProduit(idProduit);
+            alerte.setIdProducteur(idProducteur);
+
+            alerteService.appliquerReduction(alerte);
+
             JOptionPane.showMessageDialog(this,
-                "Veuillez sélectionner une alerte dans la liste",
-                "Sélection requise",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+                "Réduction appliquée avec succès !");
 
-        String idLot = (String) model.getValueAt(selectedRow, 0);
-        String idProduit = (String) model.getValueAt(selectedRow, 1);
+            chargerAlertes();
 
-        int choix = JOptionPane.showConfirmDialog(this,
-            "Voulez-vous appliquer une réduction de 30% sur ce produit ?\n\n" +
-            "Lot: " + idLot + "\n" +
-            "Produit: " + idProduit,
-            "Confirmation",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE);
-
-        if (choix == JOptionPane.YES_OPTION) {
-            try {
-                AlertePeremption alerte = new AlertePeremption();
-                alerte.setIdLot(idLot);
-                alerte.setIdProduit(idProduit);
-
-                alerteService.appliquerReduction(alerte);
-
-                JOptionPane.showMessageDialog(this,
-                    "✓ Réduction appliquée avec succès !",
-                    "Succès",
-                    JOptionPane.INFORMATION_MESSAGE);
-
-                // Recharger les alertes
-                chargerAlertes();
-
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this,
-                    "Erreur lors de l'application de la réduction:\n" + e.getMessage(),
-                    "Erreur",
-                    JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+}
+
 
     /**
      * Crée un bouton stylisé

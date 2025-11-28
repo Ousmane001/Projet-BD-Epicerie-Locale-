@@ -43,8 +43,13 @@ public class ConditionnementDAO {
     ps2.setString(2, idProduit);
     ps2.setString(3, idProducteur);
     ps2.executeUpdate();
+    //int rows = ps2.executeUpdate();
+    
+
 
     conn.commit();
+    
+
 
     rs.close();
     ps1.close();

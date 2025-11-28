@@ -16,15 +16,20 @@ public class LotDAO {
                 l.idLot,
                 s.idProduit,
                 s.idProducteur,
-                (l.dateLimite - TRUNC(CURRENT_DATE)) AS joursRestants
+                p.nomProduit,
+                l.dateLimite,
+                (l.dateLimite - TRUNC(SYSDATE)) AS joursRestants
             FROM Lot l
             JOIN Stock s ON l.idStock = s.idStock
-            WHERE l.dateLimite BETWEEN DATE '2025-11-20' AND DATE '2025-11-30'
+            JOIN Produit p ON p.idProduit = s.idProduit AND p.idProducteur = s.idProducteur
+            WHERE l.dateLimite <= TRUNC(SYSDATE) + 7
+            AND l.dateLimite > TRUNC(SYSDATE)
+            ORDER BY l.dateLimite ASC
         """;
 
         Connection conn = DataSourceProvider.getConnection();
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(sql);
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        ResultSet rs = stmt.executeQuery();
 
         List<AlertePeremption> alertes = new ArrayList<>();
 
@@ -33,15 +38,19 @@ public class LotDAO {
             a.setIdLot(rs.getString("idLot"));
             a.setIdProduit(rs.getString("idProduit"));
             a.setIdProducteur(rs.getString("idProducteur"));
+            a.setNomProduit(rs.getString("nomProduit"));
+
             Date dl = rs.getDate("dateLimite");
-            if(dl != null) a.setDateLimite(dl.toLocalDate());
+            if (dl != null) a.setDateLimite(dl.toLocalDate());
+
             a.setJoursRestants(rs.getInt("joursRestants"));
+
             alertes.add(a);
         }
 
         rs.close();
         stmt.close();
-
         return alertes;
     }
+
 }

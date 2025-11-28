@@ -11,6 +11,8 @@ public class AlertePeremption {
     private double reductionProposee = 0.30;
     private LocalDate dateAlerte = LocalDate.now();
     private LocalDate dateLimite;
+    private String nomProduit;
+
 
     public AlertePeremption() {}
 
@@ -30,10 +32,14 @@ public class AlertePeremption {
     public double getReductionProposee() { return reductionProposee; }
     public LocalDate getDateAlerte() { return dateAlerte; }
 
-    public LocalDate getLocalDateTime(){
+    public LocalDate getDateLimite(){
         return dateLimite;
     };
     public void setDateLimite(LocalDate d) {
         this.dateLimite = d;
     }
+
+    public String getNomProduit() { return nomProduit; }
+    public void setNomProduit(String nomProduit) { this.nomProduit = nomProduit; }
+
 }
