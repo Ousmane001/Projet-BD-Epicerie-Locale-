@@ -34,43 +34,9 @@ public class ConsulterCatalogue {
         return produits;
     }
     
-    /**
-     * Filtre les produits par catégorie
-     * @param categorie La catégorie à filtrer
-     * @return Liste des produits de la catégorie
-     */
-    public List<ProduitCatalogue> filtrerParCategorie(String categorie) {
-        System.out.println("=== Filtrage par catégorie: " + categorie + " ===");
-        
-        if (categorie == null || categorie.trim().isEmpty()) {
-            System.err.println("Erreur: Catégorie invalide");
-            return afficherCatalogue(); // Retourne tous les produits par défaut
-        }
-        
-        List<ProduitCatalogue> produits = catalogueDAO.getProduitsParCategorie(categorie);
-        System.out.println("Nombre de produits dans la catégorie '" + categorie + "': " + produits.size());
-        
-        return produits;
-    }
     
-    /**
-     * Recherche des produits par mot-clé dans le nom
-     * @param motCle Le mot-clé à rechercher
-     * @return Liste des produits correspondants
-     */
-    public List<ProduitCatalogue> rechercherProduits(String motCle) {
-        System.out.println("=== Recherche de produits: " + motCle + " ===");
-        
-        if (motCle == null || motCle.trim().isEmpty()) {
-            System.err.println("Erreur: Mot-clé de recherche vide");
-            return afficherCatalogue(); // Retourne tous les produits par défaut
-        }
-        
-        List<ProduitCatalogue> produits = catalogueDAO.rechercherProduits(motCle);
-        System.out.println("Nombre de produits trouvés: " + produits.size());
-        
-        return produits;
-    }
+    
+    
     
     /**
      * Récupère toutes les catégories disponibles
@@ -137,13 +103,13 @@ public class ConsulterCatalogue {
             System.out.println("Origine: " + produit.getOrigineGeographique());
         }
         
-        // if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
-        //     System.out.println("Description: " + produit.getDescription());
-        // }
+        if (produit.getDescription() != null && !produit.getDescription().isEmpty()) {
+            System.out.println("Description: " + produit.getDescription());
+        }
         
-        // if (produit.getAllergene() != null && !produit.getAllergene().isEmpty()) {
-        //     System.out.println("Allergènes: " + produit.getAllergene());
-        // }
+        if (produit.getAllergene() != null && !produit.getAllergene().isEmpty()) {
+            System.out.println("Allergènes: " + produit.getAllergene());
+        }
         
         if (produit.getDelaiDisponibilite() != null && produit.getDelaiDisponibilite() > 0) {
             System.out.println("Délai de disponibilité: " + produit.getDelaiDisponibilite() + " jours");

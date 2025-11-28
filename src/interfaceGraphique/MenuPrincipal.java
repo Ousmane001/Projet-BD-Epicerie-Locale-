@@ -92,7 +92,7 @@ public class MenuPrincipal extends JFrame {
             if (choix == JOptionPane.YES_OPTION) {
                 // Fermer la connexion à la base de données
                 config.DataSourceProvider.closeConnection();
-                System.out.println("\n Au revoir ! Merci d'avoir utilisé l'Épicerie Locale.");
+                System.out.println("\n Au revoir ! Merci d'avoir utilisé notre app, signé : Ousmane, Safwane, Fatim-Zahra, Adrien, Yasser.");
                 System.exit(0);
             }
         });
@@ -107,10 +107,6 @@ public class MenuPrincipal extends JFrame {
         // Panel du bas avec informations
         JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         footerPanel.setBackground(new Color(240, 245, 250));
-        JLabel infoLabel = new JLabel("v1.0 - Projet BD Épicerie Locale");
-        infoLabel.setFont(new Font("Arial", Font.ITALIC, 11));
-        infoLabel.setForeground(new Color(120, 120, 120));
-        footerPanel.add(infoLabel);
 
         // Assembler le tout
         mainPanel.add(headerPanel, BorderLayout.NORTH);

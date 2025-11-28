@@ -16,10 +16,11 @@ public class LotDAO {
                 l.idLot,
                 s.idProduit,
                 s.idProducteur,
+                l.dateLimite,
                 (l.dateLimite - TRUNC(CURRENT_DATE)) AS joursRestants
             FROM Lot l
             JOIN Stock s ON l.idStock = s.idStock
-            WHERE l.dateLimite BETWEEN DATE '2025-11-20' AND DATE '2025-11-30'
+            WHERE l.dateLimite <= CURRENT_DATE + 7 AND l.dateLimite >= CURRENT_DATE
         """;
 
         Connection conn = DataSourceProvider.getConnection();

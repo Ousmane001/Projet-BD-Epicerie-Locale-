@@ -32,18 +32,24 @@ public class ConditionnementDAO {
         prixActuel = rs.getDouble("prixVenteClient");
     }
 
-    // 2. Mise à jour sécurisée
+    // 2. Calcul du nouveau prix réduit
+    double nouveauPrix = prixActuel * 0.7;
+    System.out.println("id prod " + idProduit + " idproducteur = " + idProducteur);
+    System.out.println("ancien prod " + prixActuel + " nouve sera = " + nouveauPrix);
+
+
+    // 3. Mise à jour avec le nouveau prix
     PreparedStatement ps2 = conn.prepareStatement("""
         UPDATE Conditionnement
-        SET prixVenteClient = ROUND(? * 0.7, 2)
+        SET prixVenteClient = ROUND(?, 2)
         WHERE idProduit = ? AND idProducteur = ?
     """);
 
-    ps2.setDouble(1, prixActuel);
+    ps2.setDouble(1, nouveauPrix);
     ps2.setString(2, idProduit);
     ps2.setString(3, idProducteur);
     ps2.executeUpdate();
-
+    
     conn.commit();
 
     rs.close();

@@ -42,20 +42,9 @@ public class TestConsulterCatalogue {
                 System.out.println("  - " + cat);
             }
             
-            // Test 3: Filtrer par catégorie (si des catégories existent)
-            if (!categories.isEmpty()) {
-                String premiereCat = categories.get(0);
-                System.out.println("\n>>> TEST 3: Filtrage par catégorie '" + premiereCat + "'");
-                System.out.println("--------------------------------------------");
-                List<ProduitCatalogue> produitsCategorie = service.filtrerParCategorie(premiereCat);
-                afficherResume(produitsCategorie);
-            }
+           
             
-            // Test 4: Recherche de produits
-            System.out.println("\n>>> TEST 4: Recherche de produits contenant 'a'");
-            System.out.println("--------------------------------------------");
-            List<ProduitCatalogue> produitsRecherche = service.rechercherProduits("a");
-            afficherResume(produitsRecherche);
+            
             
             // Test 5: Affichage détaillé d'un produit (si disponible)
             if (!tousLesProduits.isEmpty()) {

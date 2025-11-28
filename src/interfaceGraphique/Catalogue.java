@@ -43,7 +43,6 @@ public class Catalogue extends JFrame {
             comboCategories.addItem(cat);
         }
         
-        comboCategories.addActionListener(e -> filtrerParCategorie());
 
         // Recherche par nom
         JLabel lblRecherche = new JLabel("Rechercher:");
@@ -62,7 +61,6 @@ public class Catalogue extends JFrame {
             BorderFactory.createEmptyBorder(8, 15, 8, 15)
         ));
         btnRechercher.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnRechercher.addActionListener(e -> rechercherProduits());
 
         JButton btnReinitialiser = new JButton("Réinitialiser");
         Color grisReinit = new Color(120, 120, 120);
@@ -234,73 +232,8 @@ public class Catalogue extends JFrame {
         }
     }
 
-    /**
-     * Filtre les produits par catégorie sélectionnée
-     */
-    private void filtrerParCategorie() {
-        String categorie = (String) comboCategories.getSelectedItem();
-        model.setRowCount(0);
-        
-        List<ProduitCatalogue> produits;
-        
-        if ("Toutes".equals(categorie)) {
-            produits = catalogueService.afficherCatalogue();
-        } else {
-            produits = catalogueService.filtrerParCategorie(categorie);
-        }
-        
-        for (ProduitCatalogue p : produits) {
-            model.addRow(new Object[]{
-                p.getNomProduit(),
-                p.getCategorie(),
-                String.format("%.2f", p.getPrixVenteClient()),
-                p.getTypeConditionnement(),
-                p.getPoidsSachet() != null ? String.format("%.2f kg", p.getPoidsSachet()) : "N/A",
-                p.getBio() != null ? p.getBio() : "Non",
-                p.getOrigineGeographique() != null ? p.getOrigineGeographique() : "N/A",
-                p.getStatutProduit() != null ? p.getStatutProduit() : "Disponible"
-            });
-        }
-    }
-
-    /**
-     * Recherche des produits par mot-clé
-     */
-    private void rechercherProduits() {
-        String motCle = txtRecherche.getText().trim();
-        
-        if (motCle.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Veuillez saisir un mot-clé de recherche", 
-                "Recherche", 
-                JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-        
-        model.setRowCount(0);
-        List<ProduitCatalogue> produits = catalogueService.rechercherProduits(motCle);
-        
-        if (produits.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Aucun produit trouvé pour: " + motCle, 
-                "Résultat de recherche", 
-                JOptionPane.INFORMATION_MESSAGE);
-        }
-        
-        for (ProduitCatalogue p : produits) {
-            model.addRow(new Object[]{
-                p.getNomProduit(),
-                p.getCategorie(),
-                String.format("%.2f", p.getPrixVenteClient()),
-                p.getTypeConditionnement(),
-                p.getPoidsSachet() != null ? String.format("%.2f kg", p.getPoidsSachet()) : "N/A",
-                p.getBio() != null ? p.getBio() : "Non",
-                p.getOrigineGeographique() != null ? p.getOrigineGeographique() : "N/A",
-                p.getStatutProduit() != null ? p.getStatutProduit() : "Disponible"
-            });
-        }
-    }
-
+    
+    
     /**
      * Réinitialise l'affichage
      */
