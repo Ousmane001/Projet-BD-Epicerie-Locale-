@@ -15,23 +15,33 @@ public class BoutiqueWindow extends JFrame {
         JButton commanderButton = new JButton("Commander");
         JButton btnQuitter = new JButton("Quitter");
 
-        // STYLE BOUTONS
+        // STYLE BOUTONS - amélioré pour lisibilité
         catButton.setBackground(new Color(70, 130, 180));
         catButton.setForeground(Color.WHITE);
-        catButton.setFont(new Font("Arial", Font.BOLD, 14));
+        catButton.setFont(new Font("Arial", Font.BOLD, 16));
+        catButton.setOpaque(true);
+        catButton.setBorderPainted(true);
         catButton.setFocusPainted(false);
         catButton.setBorder(BorderFactory.createEmptyBorder(15, 30, 15, 30));
+        catButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         commanderButton.setBackground(new Color(60, 179, 113));
         commanderButton.setForeground(Color.WHITE);
-        commanderButton.setFont(new Font("Arial", Font.BOLD, 14));
+        commanderButton.setFont(new Font("Arial", Font.BOLD, 16));
+        commanderButton.setOpaque(true);
+        commanderButton.setBorderPainted(true);
         commanderButton.setFocusPainted(false);
+        commanderButton.setBorder(BorderFactory.createEmptyBorder(15, 30, 15, 30));
+        commanderButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnQuitter.setBackground(new Color(220, 80, 60));
         btnQuitter.setForeground(Color.WHITE);
-        btnQuitter.setFont(new Font("Arial", Font.BOLD, 12));
+        btnQuitter.setFont(new Font("Arial", Font.BOLD, 16));
+        btnQuitter.setOpaque(true);
+        btnQuitter.setBorderPainted(true);
         btnQuitter.setFocusPainted(false);
-        btnQuitter.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        btnQuitter.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        btnQuitter.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // ---- ACTIONS ----
 

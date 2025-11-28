@@ -31,15 +31,21 @@ public class Login extends JFrame {
 
         btnSuivant.setBackground(new Color(70, 130, 180));
         btnSuivant.setForeground(Color.WHITE);
-        btnSuivant.setFont(new Font("Arial", Font.BOLD, 12));
+        btnSuivant.setFont(new Font("Arial", Font.BOLD, 16));
+        btnSuivant.setOpaque(true);
+        btnSuivant.setBorderPainted(true);
         btnSuivant.setFocusPainted(false);
-        btnSuivant.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        btnSuivant.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        btnSuivant.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnQuitter.setBackground(new Color(220, 80, 60));
         btnQuitter.setForeground(Color.WHITE);
-        btnQuitter.setFont(new Font("Arial", Font.BOLD, 12));
+        btnQuitter.setFont(new Font("Arial", Font.BOLD, 16));
+        btnQuitter.setOpaque(true);
+        btnQuitter.setBorderPainted(true);
         btnQuitter.setFocusPainted(false);
-        btnQuitter.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        btnQuitter.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        btnQuitter.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // ---- Panel principal ----
         JPanel panel = new JPanel();

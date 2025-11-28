@@ -1,57 +1,68 @@
 import config.JdbcDriverLoader;
-import model.AlertePeremption;
-import service.AlertePeremptionService;
-
-import java.util.List;
-
 import config.DataSourceProvider;
+import interfaceGraphique.MenuPrincipal;
 
+import javax.swing.*;
+
+/**
+ * Point d'entrée de l'application Épicerie Locale
+ * Initialise la connexion à la base de données et lance l'interface graphique
+ */
 public class App {
     public static void main(String[] args) {
+        System.out.println("╔════════════════════════════════════════════════╗");
+        System.out.println("║   Bienvenue dans l'Épicerie Locale - v1.0     ║");
+        System.out.println("╚════════════════════════════════════════════════╝\n");
 
-        // on charge le driver JDBC une bonne fois pour toute
-        new JdbcDriverLoader();
-
-        // le client tape ses id 
-        // ..... (ici Yasser met le code connexion client)
-
-        // on se connecte après les id du client 
-        DataSourceProvider.initConnection();
-
-        // on enleve l'autocommit : 
         try {
+            // 1. Charger le driver JDBC
+            System.out.println("⏳ Chargement du driver JDBC...");
+            new JdbcDriverLoader();
+            System.out.println("✓ Driver JDBC chargé avec succès\n");
+
+            // 2. Initialiser la connexion à la base de données
+            System.out.println("⏳ Connexion à la base de données Oracle...");
+            DataSourceProvider.initConnection();
+            
+            if (DataSourceProvider.getConnection() == null) {
+                throw new Exception("La connexion à la base de données a échoué");
+            }
+            System.out.println("✓ Connexion établie avec succès\n");
+
+            // 3. Désactiver l'autocommit pour gérer les transactions manuellement
             DataSourceProvider.getConnection().setAutoCommit(false);
-        } catch (Exception e) {
-            System.err.println("Erreur de setting a false de l'autocommit" + e);
-        }
+            System.out.println("✓ Mode transaction activé (autocommit=false)\n");
 
-        
-        // ici (les gars on doit gerer les eveneemnts user pour interragir avec nos services (transactions))
-        try {
-            AlertePeremptionService service = new AlertePeremptionService();
-
-            // 1. Générer les alertes (LISTE)
-            List<AlertePeremption> alertes = service.genererAlertes();
-
-            System.out.println("Alertes trouvées :");
-            for (AlertePeremption a : alertes) {
-                System.out.println("Lot " + a.getIdLot()
-                    + " (Produit " + a.getIdProduit()
-                    + ") périme dans " + a.getJoursRestants() + " jours.");
-            }
-
-            // 2. Appliquer la réduction (exemple : sur la première alerte)
-            if (!alertes.isEmpty()) {
-                service.appliquerReduction(alertes.get(0));
-                System.out.println("Réduction appliquée !");
-            }
+            System.out.println("🚀 Lancement de l'interface graphique...\n");
+            
+            // 4. Lancer l'interface graphique dans le thread EDT (Event Dispatch Thread)
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    // Définir le Look and Feel du système pour une meilleure intégration
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                } catch (Exception e) {
+                    System.err.println("⚠ Impossible de définir le Look and Feel système");
+                }
+                
+                // Lancer le menu principal
+                new MenuPrincipal();
+            });
 
         } catch (Exception e) {
+            System.err.println("\n❌ ERREUR CRITIQUE lors de l'initialisation:");
+            System.err.println("   " + e.getMessage());
             e.printStackTrace();
+            
+            // Afficher un message d'erreur graphique si possible
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(null,
+                    "Erreur lors de l'initialisation de l'application:\n" + e.getMessage() +
+                    "\n\nVérifiez votre connexion à la base de données.",
+                    "Erreur d'initialisation",
+                    JOptionPane.ERROR_MESSAGE);
+            });
+            
+            System.exit(1);
         }
-
-        
-        // on ferme la connexion avant de partir :)
-        DataSourceProvider.closeConnection();
     }
 }

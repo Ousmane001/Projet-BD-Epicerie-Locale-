@@ -16,6 +16,11 @@ public class ClotureCommande{
         String modePayement = fonctionsCommande.recupModePayement(idCommande);
         String statutCommande = fonctionsCommande.recupStatutCommande(idCommande);
 
+        // on facture le client : 
+        if(!fonctionsCommande.encaisseCommande(idCommande)){
+            throw new IllegalStateException("Payement refusé");
+        }
+
         // en fonction du mode de recuperation : 
         if(modeRecupCmd == "Boutique"){
             // implementation de la contrainte textuelle : << pas de statut "En preparation" pour une commande à recuperer en Boutique: 
@@ -23,15 +28,15 @@ public class ClotureCommande{
                 throw new IllegalStateException("Erreur: Vous ne pouvez pas avoir le statue de la commande " + idCommande + " En preparation avec comme mode de récuperation en Boutique ...");
             }
 
-            // si le mode de payement est en Boutique, alors on facture le client : 
-            // si on a le temps, on implementera une transaction de facturation ....
+            
             // pour le moment on se contente de changer le statut de la commande : 
             fonctionsCommande.changeStatutCommande(idCommande, "Récupérée/Livrée");
 
             // on enregistre la date de recuperation de la commande 
             fonctionsCommande.enregistreDateReceptionCommande(idCommande);
+            
 
-            // pas de changement du stock car la commande est deja en statut "prete", donc a deja ete sortie du stock
+            // pas de changement du stock car la commande est deja en statut "prete", donc on a deja retirer  du stock lors de la validation de la cmd
         }else{
             // on change l'etat de la commande 
             fonctionsCommande.changeStatutCommande(idCommande, "En préparation");

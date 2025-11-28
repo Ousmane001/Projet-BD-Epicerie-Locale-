@@ -16,6 +16,146 @@ public class CommandeDAO {
         this.connection = DataSourceProvider.getConnection();
     }
 
+
+    /**
+     * Encaisse une commande en calculant le montant total et en vérifiant le paiement
+     * @param idCommande L'identifiant de la commande
+     * @return true si le paiement est accepté, false sinon
+     */
+    public boolean encaisseCommande(String idCommande){
+        try {
+            // 1. Calculer le montant total de la commande
+            float montantTotal = calculerMontantTotal(idCommande);
+            
+            if (montantTotal <= 0) {
+                System.err.println("Erreur: Montant de la commande invalide");
+                return false;
+            }
+            
+            // 2. Récupérer le mode de paiement
+            String modePaiement = recupModePayement(idCommande);
+            
+            if (modePaiement == null) {
+                System.err.println("Erreur: Mode de paiement non trouvé");
+                return false;
+            }
+            
+            // 3. Ajouter les frais de livraison si mode domicile
+            String modeRecuperation = recupModeRecuperation(idCommande);
+            float fraisLivraison = 0;
+            
+            if ("Domicile".equals(modeRecuperation)) {
+                String idModeRecupDomicile = recupIdInfoLivraison(idCommande);
+                if (idModeRecupDomicile != null) {
+                    fraisLivraison = calculFraisDeLivraison(idModeRecupDomicile);
+                }
+            }
+            
+            float montantFinal = montantTotal + fraisLivraison;
+            
+            // 4. Simuler le paiement selon le mode
+            boolean paiementAccepte = false;
+            
+            if ("En ligne".equals(modePaiement)) {
+                paiementAccepte = traiterPaiementEnLigne(idCommande, montantFinal);
+            } else if ("En Boutique".equals(modePaiement)) {
+                paiementAccepte = traiterPaiementBoutique(idCommande, montantFinal);
+            }
+            
+            if (paiementAccepte) {
+                System.out.println("✓ Paiement accepté pour la commande " + idCommande);
+                System.out.println("  - Montant produits: " + String.format("%.2f", montantTotal) + " €");
+                System.out.println("  - Frais livraison: " + String.format("%.2f", fraisLivraison) + " €");
+                System.out.println("  - TOTAL: " + String.format("%.2f", montantFinal) + " €");
+            } else {
+                System.err.println("✗ Paiement refusé pour la commande " + idCommande);
+            }
+            
+            return paiementAccepte;
+            
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'encaissement de la commande:");
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Calcule le montant total de la commande (somme des lignes)
+     * @param idCommande L'identifiant de la commande
+     * @return Le montant total
+     */
+    private float calculerMontantTotal(String idCommande) {
+        String sql = "SELECT SUM(sousTotalLigne) AS montantTotal " +
+                     "FROM LigneCommande " +
+                     "WHERE idCommande = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, idCommande);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getFloat("montantTotal");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors du calcul du montant total:");
+            e.printStackTrace();
+        }
+        
+        return 0;
+    }
+    
+    /**
+     * Traite un paiement en ligne (simulation)
+     * @param idCommande L'identifiant de la commande
+     * @param montant Le montant à payer
+     * @return true si le paiement est accepté
+     */
+    private boolean traiterPaiementEnLigne(String idCommande, float montant) {
+        // Simulation de paiement en ligne
+        // Dans une vraie application, on appellerait une API de paiement (Stripe, PayPal, etc.)
+        
+        System.out.println("Traitement du paiement en ligne...");
+        System.out.println("Montant: " + String.format("%.2f", montant) + " €");
+        
+        // Pour la simulation, on accepte tous les paiements en ligne
+        // Dans la réalité, on vérifierait la carte bancaire, les fonds disponibles, etc.
+        
+        try {
+            // Simuler un délai de traitement
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        // Simulation: 95% de réussite
+        return Math.random() > 0.05;
+    }
+    
+    /**
+     * Traite un paiement en boutique (simulation)
+     * @param idCommande L'identifiant de la commande
+     * @param montant Le montant à payer
+     * @return true si le paiement est accepté
+     */
+    private boolean traiterPaiementBoutique(String idCommande, float montant) {
+        // Simulation de paiement en boutique
+        // Dans une vraie application, on attendrait la confirmation du caissier
+        
+        System.out.println("Paiement à effectuer en boutique");
+        System.out.println("Montant à payer: " + String.format("%.2f", montant) + " €");
+        
+        // Pour la simulation, on considère que le paiement en boutique sera effectué
+        // Le client paiera lors de la récupération
+        return true;
+    }
+
+    public void enleveDansStock(String idCommande){
+
+    }
+
+
     /**
      * Récupère le mode de récupération d'une commande
      * @param idCommande L'identifiant de la commande

@@ -46,6 +46,9 @@ public class Commande extends JFrame {
         lblType.setFont(labelFont);
         lblAdresse.setFont(labelFont);
 
+
+
+        // à supp- ------------------------------------------------------------------------------------------------------------
         // Liste des produits
         String[][] produits = {
             {"Tomates", "2.50"},
@@ -125,6 +128,11 @@ public class Commande extends JFrame {
         JButton btnRetour = new JButton("Retour");
         JButton btnQuitter = new JButton("Quitter");
 
+        // Styling des boutons pour lisibilité
+        styleButton(btnConfirmer, new Color(70, 130, 180), Color.WHITE);
+        styleButton(btnRetour, new Color(100, 149, 237), Color.WHITE);
+        styleButton(btnQuitter, new Color(220, 80, 60), Color.WHITE);
+
         btnConfirmer.addActionListener(e -> confirmerCommande(produits));
         btnRetour.addActionListener(e -> {
             new BoutiqueWindow();
@@ -188,6 +196,20 @@ public class Commande extends JFrame {
                 this, "Erreur : quantité invalide", "Erreur", JOptionPane.ERROR_MESSAGE
             );
         }
+    }
+
+    /**
+     * Applique un style uniforme aux boutons pour meilleure lisibilité
+     */
+    private void styleButton(JButton button, Color bgColor, Color fgColor) {
+        button.setBackground(bgColor);
+        button.setForeground(fgColor);
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setOpaque(true);
+        button.setBorderPainted(true);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
     public static void main(String[] args) {

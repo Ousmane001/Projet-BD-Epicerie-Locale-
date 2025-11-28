@@ -162,13 +162,16 @@ public class LivraisonWindow extends JFrame {
         );
     }
 
-    // STYLE BOUTON
+    // STYLE BOUTON - amélioré pour meilleure lisibilité
     private void designButton(JButton btn, Color c) {
         btn.setBackground(c);
         btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Arial", Font.BOLD, 12));
+        btn.setFont(new Font("Arial", Font.BOLD, 16));
+        btn.setOpaque(true);
+        btn.setBorderPainted(true);
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        btn.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
     public static void main(String[] args) {
