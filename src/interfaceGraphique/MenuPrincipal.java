@@ -125,18 +125,33 @@ public class MenuPrincipal extends JFrame {
      * Crée un bouton de menu stylisé avec texte principal et description
      */
     private JButton creerBoutonMenu(String texte, String description, Color couleur) {
-        JButton btn = new JButton();
+        JButton btn = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                // Dessiner manuellement le fond pour override le Look and Feel
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                if (getModel().isPressed()) {
+                    g2.setColor(couleur.darker());
+                } else if (getModel().isRollover()) {
+                    g2.setColor(couleur.brighter());
+                } else {
+                    g2.setColor(couleur);
+                }
+                
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                
+                super.paintComponent(g);
+            }
+        };
+        
         btn.setLayout(new BorderLayout(10, 5));
-        btn.setBackground(couleur);
-        btn.setForeground(Color.WHITE);
-        btn.setOpaque(true); // IMPORTANT: Force l'affichage de la couleur de fond
-        btn.setBorderPainted(true);
+        btn.setContentAreaFilled(false); // Ne pas laisser le L&F dessiner le fond
         btn.setFocusPainted(false);
-        btn.setContentAreaFilled(true); // S'assurer que le fond est rempli
-        btn.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(couleur.darker(), 2),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
+        btn.setBorderPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Texte principal
@@ -147,20 +162,10 @@ public class MenuPrincipal extends JFrame {
         // Description
         JLabel lblDesc = new JLabel(description);
         lblDesc.setFont(new Font("Arial", Font.PLAIN, 12));
-        lblDesc.setForeground(new Color(255, 255, 255, 200));
+        lblDesc.setForeground(Color.WHITE);
 
         btn.add(lblTexte, BorderLayout.NORTH);
         btn.add(lblDesc, BorderLayout.CENTER);
-
-        // Effet au survol
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(couleur.brighter());
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(couleur);
-            }
-        });
 
         return btn;
     }

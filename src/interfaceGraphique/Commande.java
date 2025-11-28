@@ -206,9 +206,13 @@ public class Commande extends JFrame {
         button.setForeground(fgColor);
         button.setFont(new Font("Arial", Font.BOLD, 16));
         button.setOpaque(true);
+        button.setContentAreaFilled(true);
         button.setBorderPainted(true);
         button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bgColor.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 

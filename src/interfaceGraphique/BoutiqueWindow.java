@@ -15,32 +15,47 @@ public class BoutiqueWindow extends JFrame {
         JButton commanderButton = new JButton("Commander");
         JButton btnQuitter = new JButton("Quitter");
 
-        // STYLE BOUTONS - amélioré pour lisibilité
-        catButton.setBackground(new Color(70, 130, 180));
+        // STYLE BOUTONS - amélioré pour lisibilité avec bordures visibles
+        Color bleuCat = new Color(70, 130, 180);
+        catButton.setBackground(bleuCat);
         catButton.setForeground(Color.WHITE);
         catButton.setFont(new Font("Arial", Font.BOLD, 16));
         catButton.setOpaque(true);
+        catButton.setContentAreaFilled(true);
         catButton.setBorderPainted(true);
         catButton.setFocusPainted(false);
-        catButton.setBorder(BorderFactory.createEmptyBorder(15, 30, 15, 30));
+        catButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bleuCat.darker(), 2),
+            BorderFactory.createEmptyBorder(15, 30, 15, 30)
+        ));
         catButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        commanderButton.setBackground(new Color(60, 179, 113));
+        Color vertCmd = new Color(60, 179, 113);
+        commanderButton.setBackground(vertCmd);
         commanderButton.setForeground(Color.WHITE);
         commanderButton.setFont(new Font("Arial", Font.BOLD, 16));
         commanderButton.setOpaque(true);
+        commanderButton.setContentAreaFilled(true);
         commanderButton.setBorderPainted(true);
         commanderButton.setFocusPainted(false);
-        commanderButton.setBorder(BorderFactory.createEmptyBorder(15, 30, 15, 30));
+        commanderButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(vertCmd.darker(), 2),
+            BorderFactory.createEmptyBorder(15, 30, 15, 30)
+        ));
         commanderButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        btnQuitter.setBackground(new Color(220, 80, 60));
+        Color rougeQuit = new Color(220, 80, 60);
+        btnQuitter.setBackground(rougeQuit);
         btnQuitter.setForeground(Color.WHITE);
         btnQuitter.setFont(new Font("Arial", Font.BOLD, 16));
         btnQuitter.setOpaque(true);
+        btnQuitter.setContentAreaFilled(true);
         btnQuitter.setBorderPainted(true);
         btnQuitter.setFocusPainted(false);
-        btnQuitter.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        btnQuitter.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(rougeQuit.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
         btnQuitter.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // ---- ACTIONS ----

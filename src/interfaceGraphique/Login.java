@@ -29,22 +29,34 @@ public class Login extends JFrame {
         JButton btnSuivant = new JButton("Suivant");
         JButton btnQuitter = new JButton("Quitter");
 
-        btnSuivant.setBackground(new Color(70, 130, 180));
+        // Style bouton Suivant avec couleurs forcées
+        Color bleuBtn = new Color(70, 130, 180);
+        btnSuivant.setBackground(bleuBtn);
         btnSuivant.setForeground(Color.WHITE);
         btnSuivant.setFont(new Font("Arial", Font.BOLD, 16));
         btnSuivant.setOpaque(true);
+        btnSuivant.setContentAreaFilled(true);
         btnSuivant.setBorderPainted(true);
         btnSuivant.setFocusPainted(false);
-        btnSuivant.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        btnSuivant.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bleuBtn.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
         btnSuivant.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        btnQuitter.setBackground(new Color(220, 80, 60));
+        // Style bouton Quitter avec couleurs forcées
+        Color rougeBtn = new Color(220, 80, 60);
+        btnQuitter.setBackground(rougeBtn);
         btnQuitter.setForeground(Color.WHITE);
         btnQuitter.setFont(new Font("Arial", Font.BOLD, 16));
         btnQuitter.setOpaque(true);
+        btnQuitter.setContentAreaFilled(true);
         btnQuitter.setBorderPainted(true);
         btnQuitter.setFocusPainted(false);
-        btnQuitter.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        btnQuitter.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(rougeBtn.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
         btnQuitter.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // ---- Panel principal ----

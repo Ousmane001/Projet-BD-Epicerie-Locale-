@@ -168,9 +168,13 @@ public class LivraisonWindow extends JFrame {
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Arial", Font.BOLD, 16));
         btn.setOpaque(true);
+        btn.setContentAreaFilled(true);
         btn.setBorderPainted(true);
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+        btn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(c.darker(), 2),
+            BorderFactory.createEmptyBorder(12, 20, 12, 20)
+        ));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
