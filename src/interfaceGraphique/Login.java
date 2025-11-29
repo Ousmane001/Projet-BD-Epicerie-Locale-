@@ -1,27 +1,31 @@
 package interfaceGraphique;
+
+import dao.ClientDAO;
+import model.Session;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class Login extends JFrame {
-    private JTextField txtLogin;
+    private JTextField txtEmail;
 
     public Login() {
         setTitle("Espace Client");
-        setSize(400, 180);
+        setSize(420, 180);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setBackground(new Color(240, 245, 250));
 
-        JLabel lblLogin = new JLabel("Nom :");
-        lblLogin.setFont(new Font("Arial", Font.BOLD, 14));
-        lblLogin.setForeground(new Color(60, 60, 60));
+        JLabel lblEmail = new JLabel("Email :");
+        lblEmail.setFont(new Font("Arial", Font.BOLD, 14));
+        lblEmail.setForeground(new Color(60, 60, 60));
 
-        // ---- Champ de texte agrandi ----
-        txtLogin = new JTextField();
-        txtLogin.setFont(new Font("Arial", Font.PLAIN, 16));  
-        txtLogin.setColumns(20);                               
-        txtLogin.setPreferredSize(new Dimension(250, 35));     
-        txtLogin.setBorder(BorderFactory.createCompoundBorder(
+        // Champ email
+        txtEmail = new JTextField();
+        txtEmail.setFont(new Font("Arial", Font.PLAIN, 16));
+        txtEmail.setColumns(20);
+        txtEmail.setPreferredSize(new Dimension(250, 35));
+        txtEmail.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200)),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
@@ -29,37 +33,7 @@ public class Login extends JFrame {
         JButton btnSuivant = new JButton("Suivant");
         JButton btnQuitter = new JButton("Quitter");
 
-        // Style bouton Suivant avec couleurs forcées
-        Color bleuBtn = new Color(70, 130, 180);
-        btnSuivant.setBackground(bleuBtn);
-        btnSuivant.setForeground(Color.WHITE);
-        btnSuivant.setFont(new Font("Arial", Font.BOLD, 16));
-        btnSuivant.setOpaque(true);
-        btnSuivant.setContentAreaFilled(true);
-        btnSuivant.setBorderPainted(true);
-        btnSuivant.setFocusPainted(false);
-        btnSuivant.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(bleuBtn.darker(), 2),
-            BorderFactory.createEmptyBorder(12, 20, 12, 20)
-        ));
-        btnSuivant.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // Style bouton Quitter avec couleurs forcées
-        Color rougeBtn = new Color(220, 80, 60);
-        btnQuitter.setBackground(rougeBtn);
-        btnQuitter.setForeground(Color.WHITE);
-        btnQuitter.setFont(new Font("Arial", Font.BOLD, 16));
-        btnQuitter.setOpaque(true);
-        btnQuitter.setContentAreaFilled(true);
-        btnQuitter.setBorderPainted(true);
-        btnQuitter.setFocusPainted(false);
-        btnQuitter.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(rougeBtn.darker(), 2),
-            BorderFactory.createEmptyBorder(12, 20, 12, 20)
-        ));
-        btnQuitter.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        // ---- Panel principal ----
+        // Panel principal
         JPanel panel = new JPanel();
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -72,13 +46,11 @@ public class Login extends JFrame {
 
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        // Ligne pour label + champ
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         inputPanel.setBackground(Color.WHITE);
-        inputPanel.add(lblLogin);
-        inputPanel.add(txtLogin);
+        inputPanel.add(lblEmail);
+        inputPanel.add(txtEmail);
 
-        // Ligne pour boutons
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnPanel.setBackground(Color.WHITE);
         btnPanel.add(btnSuivant);
@@ -87,19 +59,24 @@ public class Login extends JFrame {
         panel.add(inputPanel);
         panel.add(btnPanel);
 
-        // ---- Actions ----
+        // Actions
         btnSuivant.addActionListener(e -> {
-            String login = txtLogin.getText().trim();
-            if (!login.isEmpty()) {
-                new Commande();  // ouvrir Commande
+            String email = txtEmail.getText().trim();
+            if (email.isEmpty()) {
+                JOptionPane.showMessageDialog(Login.this, "Veuillez entrer votre email.", "Erreur", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            ClientDAO clientDAO = new ClientDAO();
+            String idClient = clientDAO.getClientIdByEmail(email);
+            if (idClient != null) {
+                Session.setClientId(idClient);
+                Session.setRole("CLIENT");
+                // ouvrir l'interface commande
+                new CommandeClient();
                 dispose();
             } else {
-                JOptionPane.showMessageDialog(
-                        Login.this,
-                        "Veuillez entrer un nom.",
-                        "Erreur",
-                        JOptionPane.WARNING_MESSAGE
-                );
+                JOptionPane.showMessageDialog(Login.this, "Email inconnu dans la base. Veuillez vérifier.", "Erreur", JOptionPane.ERROR_MESSAGE);
             }
         });
 

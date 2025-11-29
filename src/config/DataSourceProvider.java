@@ -5,42 +5,28 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DataSourceProvider {
-    private static Connection connection;  // on met static car la connexion a notre BD est censé etre la meme pour n'importe quelle instance de DatasourceProvider
+    private static final String URL = "jdbc:oracle:thin:@oracle1.ensimag.fr:1521:oracle1";
+    private static final String USER = "diakitao";
+    private static final String PASS = "diakitao";
 
-    // methode nous permettant d'initialiser la connexion au démarrage de l'app
-    public static void initConnection() {
-        if (connection == null) {
-            System.out.println("tentative");
-            try {
-                // Vous devez avoir fait new JdbcDriverLoader() AVANT
-                connection = DriverManager.getConnection(
-                    "jdbc:oracle:thin:@oracle1.ensimag.fr:1521:oracle1",  
-                    "diakitao",        // si on a le temps, on mettra les id dans un fichier .env pour rendre faciliter nos tests     
-                    "diakitao"                             
-                );
-                System.out.println(">> Connexion à Oracle établie !");
-            } catch (SQLException e) {
-                System.err.println("Erreur de connexion :");
-                e.printStackTrace();
-            }
+    // Chaque appel retourne une nouvelle connexion (plus sûr que partage statique dans notre contexte Swing)
+    public static Connection getValidConnection() {
+        try {
+            return DriverManager.getConnection(URL, USER, PASS);
+        } catch (SQLException e) {
+            System.err.println("[DB] Impossible d'obtenir une connexion");
+            e.printStackTrace();
+            return null;
         }
     }
 
-    // Fournit l'unique connexion pour toute l'application de notre epicerie
-    public static Connection getConnection() {
-        return connection;
-    }
+    public static Connection getConnection() { return getValidConnection(); }
 
-    // Fermeture de notre connexion quand le client se deconnecte !
-    public static void closeConnection() {
-        if (connection != null) {
-            try {
-                connection.close();
-                System.out.println(">> Connexion Oracle fermée.");
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+    public static void initConnection() { /* plus nécessaire avec connexions à la demande */ }
+
+    public static void closeConnection(Connection c) {
+        if (c != null) {
+            try { c.close(); } catch (SQLException ignore) {}
         }
     }
-
 }

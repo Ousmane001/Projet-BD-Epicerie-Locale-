@@ -1,3 +1,1 @@
-public class ProduitDAO {
-    
-}
+// migrated to src/dao/ProduitDAO.java

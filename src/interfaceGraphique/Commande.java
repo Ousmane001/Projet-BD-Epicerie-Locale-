@@ -1,12 +1,23 @@
 package interfaceGraphique;
+import dao.ProduitDAO;
+import model.CommandeItem;
+import model.ProduitDisponible;
+import model.Session;
+import service.CommandeService;
+
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Commande extends JFrame {
-    private JComboBox<String> comboProduit;
+    private JComboBox<ProduitDisponible> comboProduit;
     private JTextField txtPrix, txtQuantite;
-    private JComboBox<String> comboType;
+    private JComboBox<String> comboType, comboModePaiement;
     private JTextField txtAdresse;
+    private List<ProduitDisponible> produitsDisponibles;
+    private JTextArea txtPanier;
+    private List<CommandeItem> panier;
 
     public Commande() {
         setTitle("Commande");

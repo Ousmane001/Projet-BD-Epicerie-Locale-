@@ -40,9 +40,25 @@ public class App {
                 } catch (Exception e) {
                     System.err.println(" Impossible de définir le Look and Feel système");
                 }
-                
-                // Lancer le menu principal
-                new MenuPrincipal();
+
+                // Choix du rôle au démarrage : Client ou Gestion
+                String[] options = {"Client", "Gestion"};
+                int choix = JOptionPane.showOptionDialog(
+                        null,
+                        "Vous êtes :",
+                        "Choix du rôle",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        options,
+                        options[0]
+                );
+
+                if (choix == 0) { // Client
+                    new interfaceGraphique.Login();
+                } else { // Gestion ou annulation -> ouvrir menu principal de gestion
+                    new MenuPrincipal();
+                }
             });
 
         } catch (Exception e) {

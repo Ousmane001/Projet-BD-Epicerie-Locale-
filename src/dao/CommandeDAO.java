@@ -53,25 +53,21 @@ public class CommandeDAO {
             
             float montantFinal = montantTotal + fraisLivraison;
             
-            // 4. Simuler le paiement selon le mode
-            boolean paiementAccepte = false;
             
             if ("En ligne".equals(modePaiement)) {
-                paiementAccepte = traiterPaiementEnLigne(idCommande, montantFinal);
+                traiterPaiementEnLigne(idCommande, montantFinal);
             } else if ("En Boutique".equals(modePaiement)) {
-                paiementAccepte = traiterPaiementBoutique(idCommande, montantFinal);
+                traiterPaiementBoutique(idCommande, montantFinal);
             }
             
-            if (paiementAccepte) {
-                System.out.println("✓ Paiement accepté pour la commande " + idCommande);
-                System.out.println("  - Montant produits: " + String.format("%.2f", montantTotal) + " €");
-                System.out.println("  - Frais livraison: " + String.format("%.2f", fraisLivraison) + " €");
-                System.out.println("  - TOTAL: " + String.format("%.2f", montantFinal) + " €");
-            } else {
-                System.err.println("✗ Paiement refusé pour la commande " + idCommande);
-            }
+
+            System.out.println("Paiement accepté pour la commande " + idCommande);
+            System.out.println("  - Montant produits: " + String.format("%.2f", montantTotal) + " €");
+            System.out.println("  - Frais livraison: " + String.format("%.2f", fraisLivraison) + " €");
+            System.out.println("  - TOTAL: " + String.format("%.2f", montantFinal) + " €");
+
             
-            return paiementAccepte;
+            return true;
             
         } catch (Exception e) {
             System.err.println("Erreur lors de l'encaissement de la commande:");
@@ -112,7 +108,7 @@ public class CommandeDAO {
      * @param montant Le montant à payer
      * @return true si le paiement est accepté
      */
-    private boolean traiterPaiementEnLigne(String idCommande, float montant) {
+    private void traiterPaiementEnLigne(String idCommande, float montant) {
         // Simulation de paiement en ligne
         // Dans une vraie application, on appellerait une API de paiement (Stripe, PayPal, etc.)
         
@@ -129,8 +125,6 @@ public class CommandeDAO {
             Thread.currentThread().interrupt();
         }
         
-        // Simulation: 95% de réussite
-        return Math.random() > 0.05;
     }
     
     /**
@@ -152,7 +146,99 @@ public class CommandeDAO {
     }
 
     public void enleveDansStock(String idCommande){
+        // Décrémente le stock (FEFO) pour toutes les lignes de la commande
+        // en fonction du type (vrac ou préconditionné) et des quantités.
+        try {
+            connection.setAutoCommit(false);
 
+            StockDAO stockDAO = new StockDAO();
+
+            // Récupérer toutes les lignes produit de la commande
+            String sqlLignes = "SELECT lcp.idLigneCommande, lcp.idProduit, lcp.idProducteur \n" +
+                    "FROM LigneCommandeProduit lcp \n" +
+                    "WHERE lcp.idCommande = ?";
+            try (PreparedStatement psLignes = connection.prepareStatement(sqlLignes)) {
+                psLignes.setString(1, idCommande);
+                try (ResultSet rsLignes = psLignes.executeQuery()) {
+                    while (rsLignes.next()) {
+                        String idLigne = rsLignes.getString("idLigneCommande");
+                        String idProduit = rsLignes.getString("idProduit");
+                        String idProducteur = rsLignes.getString("idProducteur");
+
+                        // Déterminer s'il s'agit de vrac ou préconditionné en regardant les tables spécifiques
+                        Integer qtePre = null;
+                        Double qteVrac = null;
+
+                        String sqlPre = "SELECT quantiteCommandePreconditionne FROM LigneCommandeProduitPreconditionne " +
+                                       "WHERE idLigneCommande = ? AND idCommande = ?";
+                        try (PreparedStatement psPre = connection.prepareStatement(sqlPre)) {
+                            psPre.setString(1, idLigne);
+                            psPre.setString(2, idCommande);
+                            try (ResultSet rsPre = psPre.executeQuery()) {
+                                if (rsPre.next()) {
+                                    qtePre = rsPre.getInt("quantiteCommandePreconditionne");
+                                }
+                            }
+                        }
+
+                        if (qtePre == null) {
+                            String sqlVrac = "SELECT quantiteCommandeVrac FROM LigneCommandeProduitVrac " +
+                                             "WHERE idLigneCommande = ? AND idCommande = ?";
+                            try (PreparedStatement psVrac = connection.prepareStatement(sqlVrac)) {
+                                psVrac.setString(1, idLigne);
+                                psVrac.setString(2, idCommande);
+                                try (ResultSet rsVrac = psVrac.executeQuery()) {
+                                    if (rsVrac.next()) {
+                                        qteVrac = rsVrac.getDouble("quantiteCommandeVrac");
+                                    }
+                                }
+                            }
+                        }
+
+                        // Récupérer le stock pour ce produit/producteur
+                        String idStock = stockDAO.getIdStock(idProduit, idProducteur, connection);
+                        if (idStock == null) {
+                            throw new SQLException("Stock introuvable pour le produit: " + idProduit);
+                        }
+
+                        // Parcourir les lots FEFO et décrémenter
+                        try (ResultSet lots = stockDAO.getLotsOrdonnesByIdStock(idStock, connection)) {
+                            int restePre = (qtePre != null ? qtePre : 0);
+                            double resteVrac = (qteVrac != null ? qteVrac : 0.0);
+                            while (lots != null && lots.next() && (restePre > 0 || resteVrac > 0.0)) {
+                                String idLot = lots.getString("idLot");
+                                java.sql.Date dateLimite = lots.getDate("dateLimite");
+                                if (dateLimite != null && dateLimite.before(new java.util.Date())) continue; // lot périmé
+
+                                if (qtePre != null) {
+                                    Integer dispoPre = stockDAO.getQuantitePreconditionneLot(idLot, connection);
+                                    if (dispoPre == null || dispoPre <= 0) continue;
+                                    int prise = Math.min(dispoPre, restePre);
+                                    stockDAO.decrementPreconditionneLot(idLot, prise, connection);
+                                    restePre -= prise;
+                                } else if (qteVrac != null) {
+                                    Double dispoVrac = stockDAO.getQuantiteVracLot(idLot, connection);
+                                    if (dispoVrac == null || dispoVrac <= 0) continue;
+                                    double prise = Math.min(dispoVrac, resteVrac);
+                                    stockDAO.decrementVracLot(idLot, prise, connection);
+                                    resteVrac -= prise;
+                                }
+                            }
+                            if (restePre > 0 || resteVrac > 0.0) {
+                                throw new SQLException("Stock insuffisant ou lots périmés pour le produit: " + idProduit);
+                            }
+                        }
+                    }
+                }
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            try { connection.rollback(); } catch (SQLException ignore) {}
+            throw new RuntimeException(e);
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException ignore) {}
+        }
     }
 
 
@@ -466,4 +552,76 @@ public class CommandeDAO {
     //         e.printStackTrace();
     //     }
     // }
+    /** Fin des anciennes méthodes */
+
+    /**
+     * Retourne les informations essentielles d'une commande pour la clôture / préparation.
+     */
+    public CommandeInfo getCommandeInfo(String idCommande) {
+        String sql = "SELECT statutCommande, modeRecuperation, modePaiement, dateRecuperation, datePaiement " +
+                "FROM Commande WHERE idCommande = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, idCommande);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    CommandeInfo ci = new CommandeInfo();
+                    ci.idCommande = idCommande;
+                    ci.statut = rs.getString("statutCommande");
+                    ci.modeRecuperation = rs.getString("modeRecuperation");
+                    ci.modePaiement = rs.getString("modePaiement");
+                    ci.dateRecuperation = rs.getTimestamp("dateRecuperation");
+                    ci.datePaiement = rs.getTimestamp("datePaiement");
+                    return ci;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /** Enregistre la date de paiement si pas déjà renseignée. */
+    public boolean enregistrerDatePaiement(String idCommande) {
+        String check = "SELECT datePaiement FROM Commande WHERE idCommande = ?";
+        try (PreparedStatement ps = connection.prepareStatement(check)) {
+            ps.setString(1, idCommande);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next() && rs.getTimestamp("datePaiement") != null) {
+                    return false; // déjà payé
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        String upd = "UPDATE Commande SET datePaiement = SYSDATE WHERE idCommande = ?";
+        try (PreparedStatement ps = connection.prepareStatement(upd)) {
+            ps.setString(1, idCommande);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    /** Vérifie si la commande est déjà clôturée (dateRecuperation non nulle ou statut final). */
+    public boolean estCloturee(String idCommande) {
+        String sql = "SELECT dateRecuperation, statutCommande FROM Commande WHERE idCommande = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, idCommande);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getTimestamp("dateRecuperation") != null ||
+                            "Récupérée/Livrée".equals(rs.getString("statutCommande"));
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    // DTO interne
+    public static class CommandeInfo {
+        public String idCommande;
+        public String statut;
+        public String modeRecuperation;
+        public String modePaiement;
+        public java.sql.Timestamp dateRecuperation;
+        public java.sql.Timestamp datePaiement;
+    }
+
 }

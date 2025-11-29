@@ -90,8 +90,7 @@ public class MenuPrincipal extends JFrame {
                 JOptionPane.QUESTION_MESSAGE);
             
             if (choix == JOptionPane.YES_OPTION) {
-                // Fermer la connexion à la base de données
-                config.DataSourceProvider.closeConnection();
+                // Rien à fermer: connexions ouvertes et fermées à la demande
                 System.out.println("\n Au revoir ! Merci d'avoir utilisé notre app, signé : Ousmane, Safwane, Fatim-Zahra, Adrien, Yasser.");
                 System.exit(0);
             }

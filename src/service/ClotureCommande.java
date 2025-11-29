@@ -3,58 +3,149 @@ package service;
 import java.time.LocalDate;
 
 import dao.CommandeDAO;
+import dao.CommandeDAO.CommandeInfo;
 
-public class ClotureCommande{
-    // fonctions/methodes necessaire a la transaction :
-    private CommandeDAO fonctionsCommande = new CommandeDAO();
-    public ClotureCommande(String idCommande){
+/**
+ * Service de préparation / clôture des commandes.
+ * Règles rappelées:
+ * - Domicile: paiement obligatoire "En ligne"; stock sorti au passage à "Prête".
+ * - Boutique: pas de statut "En préparation"; statut passe directement à "Prête" à la création,
+ *             stock peut être sorti juste avant la remise (ici lors de la clôture si pas déjà fait).
+ * - Clôture interdite si déjà récupérée/livrée (dateRecuperation non nulle ou statut final).
+ */
+public class ClotureCommande {
 
-        // on recupere avant tout le mode de recuperation de la commande : 
-        String modeRecupCmd = fonctionsCommande.recupModeRecuperation(idCommande);
+    private final CommandeDAO commandeDAO = new CommandeDAO();
 
-        // on recupere egalement les mode de payement et les statut actuelle de la commande :
-        String modePayement = fonctionsCommande.recupModePayement(idCommande);
-        String statutCommande = fonctionsCommande.recupStatutCommande(idCommande);
-
-        // on facture le client : 
-        if(!fonctionsCommande.encaisseCommande(idCommande)){
-            throw new IllegalStateException("Payement refusé");
+    /**
+     * Prépare une commande (transition vers "Prête") pour les commandes domicile.
+     * Déclenche la sortie de stock et enregistre la date de paiement si paiement en ligne.
+     */
+    public void preparerCommande(String idCommande) {
+        CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
+        if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
+        if (!"Domicile".equals(info.modeRecuperation)) {
+            throw new IllegalStateException("La préparation explicite ne concerne que les commandes Domicile");
+        }
+        if (!"En préparation".equals(info.statut)) {
+            throw new IllegalStateException("Statut attendu 'En préparation' pour préparer: actuel=" + info.statut);
+        }
+        if (!"En ligne".equals(info.modePaiement)) {
+            throw new IllegalStateException("Paiement obligatoire en ligne pour Domicile");
         }
 
-        // en fonction du mode de recuperation : 
-        if(modeRecupCmd == "Boutique"){
-            // implementation de la contrainte textuelle : << pas de statut "En preparation" pour une commande à recuperer en Boutique: 
-            if(statutCommande == "En préparation" || statutCommande != "Prête"){
-                throw new IllegalStateException("Erreur: Vous ne pouvez pas avoir le statue de la commande " + idCommande + " En preparation avec comme mode de récuperation en Boutique ...");
+        // Encaisse si pas déjà payé (simulation) puis datePaiement
+        if (info.datePaiement == null) {
+            if (!commandeDAO.encaisseCommande(idCommande)) {
+                throw new IllegalStateException("Paiement refusé");
             }
-
-            
-            // pour le moment on se contente de changer le statut de la commande : 
-            fonctionsCommande.changeStatutCommande(idCommande, "Récupérée/Livrée");
-
-            // on enregistre la date de recuperation de la commande 
-            fonctionsCommande.enregistreDateReceptionCommande(idCommande);
-            
-
-            // pas de changement du stock car la commande est deja en statut "prete", donc on a deja retirer  du stock lors de la validation de la cmd
-        }else{
-            // on change l'etat de la commande 
-            fonctionsCommande.changeStatutCommande(idCommande, "En préparation");
-
-            // on recupere les informations de livraison pour calculer les frais de livraison ainsi que la date estimée de livraison
-            String idModeRecuperationDomicile = fonctionsCommande.recupIdInfoLivraison(idCommande);
-            
-            // on effectue les calculs nécessaires pour des fin d'affichages:
-            int fraisDeLivraison = fonctionsCommande.calculFraisDeLivraison(idModeRecuperationDomicile);
-            LocalDate dateEstimeeDeLivraison = fonctionsCommande.calculDateEstimeeDeLivraison(idModeRecuperationDomicile);
-
-            // la commande n'etant pas encore en statut prete, alors aucun changement de stock
-            // ça sera declanché un employe de l'epicerie une fois la commande declarée comme prete !
+            commandeDAO.enregistrerDatePaiement(idCommande);
         }
 
-        
-        
-        
+        // Sortie de stock FEFO au passage à "Prête"
+        try {
+            commandeDAO.enleveDansStock(idCommande);
+        } catch (RuntimeException re) {
+            throw re; // propage l'erreur stock
+        }
+        commandeDAO.changeStatutCommande(idCommande, "Prête");
+    }
 
+    /**
+     * Clôture la commande (réception boutique ou livraison effectuée).
+     * Enregistre date de paiement (si boutique) et date de récupération.
+     */
+    public void cloturerCommande(String idCommande) {
+        if (commandeDAO.estCloturee(idCommande)) {
+            throw new IllegalStateException("Commande déjà clôturée: " + idCommande);
+        }
+        CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
+        if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
+
+        if (!"Prête".equals(info.statut)) {
+            throw new IllegalStateException("Statut doit être 'Prête' pour clôturer. Actuel=" + info.statut);
+        }
+
+        if ("Domicile".equals(info.modeRecuperation) && !"En ligne".equals(info.modePaiement)) {
+            throw new IllegalStateException("Livraison requiert paiement 'En ligne'");
+        }
+
+        // Paiement boutique au moment de la récupération
+        if ("Boutique".equals(info.modeRecuperation) && "En Boutique".equals(info.modePaiement) && info.datePaiement == null) {
+            if (!commandeDAO.encaisseCommande(idCommande)) {
+                throw new IllegalStateException("Paiement boutique refusé");
+            }
+            commandeDAO.enregistrerDatePaiement(idCommande);
+        }
+
+        // Pour Boutique: stock peut ne pas encore être décrémenté (puisque statut déjà 'Prête' sans décrément).
+        if ("Boutique".equals(info.modeRecuperation)) {
+            try {
+                commandeDAO.enleveDansStock(idCommande);
+            } catch (RuntimeException re) {
+                throw re;
+            }
+        }
+
+        commandeDAO.enregistreDateReceptionCommande(idCommande);
+        commandeDAO.changeStatutCommande(idCommande, "Récupérée/Livrée");
+    }
+
+    /**
+     * Passage manuel d'une commande au statut "Prête" sans la clôturer.
+     * - Domicile: paiement en ligne obligatoire, sortie de stock immédiate (FEFO) et enregistrement datePaiement.
+     * - Boutique: simple changement de statut (stock sortira à la clôture).
+     */
+    public void marquerPrete(String idCommande) {
+        CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
+        if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
+        if ("Prête".equals(info.statut)) {
+            throw new IllegalStateException("Commande déjà au statut 'Prête'");
+        }
+        if ("Récupérée/Livrée".equals(info.statut)) {
+            throw new IllegalStateException("Commande déjà clôturée");
+        }
+
+        if ("Domicile".equals(info.modeRecuperation)) {
+            if (!"En ligne".equals(info.modePaiement)) {
+                throw new IllegalStateException("Paiement en ligne requis pour livraison domicile");
+            }
+            // Paiement si nécessaire
+            if (info.datePaiement == null) {
+                if (!commandeDAO.encaisseCommande(idCommande)) {
+                    throw new IllegalStateException("Paiement refusé");
+                }
+                commandeDAO.enregistrerDatePaiement(idCommande);
+            }
+            // Sortie de stock maintenant
+            commandeDAO.enleveDansStock(idCommande);
+            commandeDAO.changeStatutCommande(idCommande, "Prête");
+        } else if ("Boutique".equals(info.modeRecuperation)) {
+            // Juste passage à Prête (pas de sortie stock maintenant)
+            commandeDAO.changeStatutCommande(idCommande, "Prête");
+        } else {
+            throw new IllegalStateException("Mode de récupération inconnu: " + info.modeRecuperation);
+        }
+    }
+
+    /** Affiche info livraison (frais + date estimée) sans modifier l'état. */
+    public void afficherInfosLivraison(String idCommande) {
+        CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
+        if (info == null) {
+            System.err.println("Commande introuvable: " + idCommande);
+            return;
+        }
+        if (!"Domicile".equals(info.modeRecuperation)) {
+            System.out.println("Commande " + idCommande + " mode=" + info.modeRecuperation + ": pas de livraison.");
+            return;
+        }
+        String idMode = commandeDAO.recupIdInfoLivraison(idCommande);
+        if (idMode == null) {
+            System.err.println("Informations livraison manquantes pour " + idCommande);
+            return;
+        }
+        int frais = commandeDAO.calculFraisDeLivraison(idMode);
+        LocalDate dateEstimee = commandeDAO.calculDateEstimeeDeLivraison(idMode);
+        System.out.println("Livraison commande " + idCommande + ": frais=" + frais + "€, date estimée=" + dateEstimee);
     }
 }

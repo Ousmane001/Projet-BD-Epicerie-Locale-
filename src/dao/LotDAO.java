@@ -4,6 +4,7 @@ import config.DataSourceProvider;
 import model.AlertePeremption;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +52,43 @@ public class LotDAO {
         rs.close();
         stmt.close();
         return alertes;
+    }
+
+    public String getConditionnementByIdLot(String idLot, Connection conn){
+        String sqlPre = "SELECT 1 FROM LotPreconditionne WHERE idLot = ?";
+        String sqlVra = "SELECT 1 FROM LotVrac WHERE idLot = ?";
+        try{
+            PreparedStatement pstmtPre = conn.prepareStatement(sqlPre);
+            pstmtPre.setString(1, idLot);
+            ResultSet rsPre = pstmtPre.executeQuery();
+            if(rsPre.next()){
+                return "Preconditionne";
+            }
+            PreparedStatement pstmtVra = conn.prepareStatement(sqlVra);
+            pstmtVra.setString(1, idLot);
+            ResultSet rsVra = pstmtVra.executeQuery();
+            if(rsVra.next()){
+                return "Vrac";
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        return "inconnu";
+    }
+
+    public LocalDate getDatePeremptionByIdLot(String idLot, Connection conn){
+        String sql = "SELECT dateLimite FROM Lot WHERE idLot = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, idLot);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                Date dateLimite = rs.getDate("dateLimite");
+                return dateLimite != null ? dateLimite.toLocalDate() : null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

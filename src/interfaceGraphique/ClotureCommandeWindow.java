@@ -105,6 +105,10 @@ public class ClotureCommandeWindow extends JFrame {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         btnPanel.setBackground(new Color(240, 245, 250));
 
+        JButton btnPrete = new JButton(" Passer en Prête");
+        styleButton(btnPrete, new Color(255, 140, 0));
+        btnPrete.addActionListener(e -> passerEnPrete());
+
         JButton btnCloturer = new JButton(" Clôturer la Commande");
         styleButton(btnCloturer, new Color(60, 179, 113));
         btnCloturer.addActionListener(e -> cloturerCommande());
@@ -120,6 +124,7 @@ public class ClotureCommandeWindow extends JFrame {
         styleButton(btnQuitter, new Color(220, 80, 60));
         btnQuitter.addActionListener(e -> System.exit(0));
 
+        btnPanel.add(btnPrete);
         btnPanel.add(btnCloturer);
         btnPanel.add(btnRetour);
         btnPanel.add(btnQuitter);
@@ -243,8 +248,18 @@ public class ClotureCommandeWindow extends JFrame {
 
         if (choix == JOptionPane.YES_OPTION) {
             try {
-                // Exécuter la transaction de clôture
-                new ClotureCommande(idCommande);
+                ClotureCommande service = new ClotureCommande();
+
+                // Récupérer infos pour savoir si préparation nécessaire (Domicile encore en préparation)
+                String statut = commandeDAO.recupStatutCommande(idCommande);
+                String modeRecup = commandeDAO.recupModeRecuperation(idCommande);
+
+                if ("Domicile".equals(modeRecup) && "En préparation".equals(statut)) {
+                    // Passage à "Prête" + sortie de stock + paiement si en ligne
+                    service.preparerCommande(idCommande);
+                }
+                // Clôture (sortie de stock boutique si nécessaire + date récupération + statut final)
+                service.cloturerCommande(idCommande);
 
                 JOptionPane.showMessageDialog(this,
                     "✓ Commande clôturée avec succès !\n\n" +
@@ -267,6 +282,38 @@ public class ClotureCommandeWindow extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }
+        }
+    }
+
+    /** Passage manuel au statut "Prête" */
+    private void passerEnPrete() {
+        String idCommande = txtIdCommande.getText().trim();
+        if (idCommande.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "Veuillez saisir un ID de commande",
+                "Champ requis",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            ClotureCommande service = new ClotureCommande();
+            service.marquerPrete(idCommande);
+            JOptionPane.showMessageDialog(this,
+                "Statut passé à 'Prête' pour la commande #" + idCommande,
+                "Succès",
+                JOptionPane.INFORMATION_MESSAGE);
+            consulterCommande();
+        } catch (IllegalStateException ex) {
+            JOptionPane.showMessageDialog(this,
+                ex.getMessage(),
+                "Impossible",
+                JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Erreur inattendue: " + ex.getMessage(),
+                "Erreur",
+                JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
