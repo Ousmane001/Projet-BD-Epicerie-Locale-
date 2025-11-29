@@ -25,7 +25,7 @@ public class StockService {
                 String idLot = lots.getString("idLot");
 
                 String typeLot = lotDAO.getConditionnementByIdLot(idLot, conn);
-                if (!typeLot.equalsIgnoreCase(typeConditionnement)) continue;
+                if (typeLot == null || !typeLot.equalsIgnoreCase(typeConditionnement)) continue;
 
                 LocalDate datePeremption = lotDAO.getDatePeremptionByIdLot(idLot, conn);
                 if (dateEstimeeLivraison != null && datePeremption != null && dateEstimeeLivraison.isAfter(datePeremption)) {

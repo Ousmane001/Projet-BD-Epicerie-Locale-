@@ -11,7 +11,6 @@ import java.util.List;
 public class LotDAO {
 
     public List<AlertePeremption> findLotsPerissables() throws SQLException {
-
         String sql = """
             SELECT
                 l.idLot,
@@ -29,66 +28,62 @@ public class LotDAO {
         """;
 
         Connection conn = DataSourceProvider.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery();
-
-        List<AlertePeremption> alertes = new ArrayList<>();
-
-        while (rs.next()) {
-            AlertePeremption a = new AlertePeremption();
-            a.setIdLot(rs.getString("idLot"));
-            a.setIdProduit(rs.getString("idProduit"));
-            a.setIdProducteur(rs.getString("idProducteur"));
-            a.setNomProduit(rs.getString("nomProduit"));
-
-            Date dl = rs.getDate("dateLimite");
-            if (dl != null) a.setDateLimite(dl.toLocalDate());
-
-            a.setJoursRestants(rs.getInt("joursRestants"));
-
-            alertes.add(a);
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            List<AlertePeremption> alertes = new ArrayList<>();
+            while (rs.next()) {
+                AlertePeremption a = new AlertePeremption();
+                a.setIdLot(rs.getString("idLot"));
+                a.setIdProduit(rs.getString("idProduit"));
+                a.setIdProducteur(rs.getString("idProducteur"));
+                a.setNomProduit(rs.getString("nomProduit"));
+                a.setJoursRestants(rs.getInt("joursRestants"));
+                Date dl = rs.getDate("dateLimite");
+                if (dl != null) a.setDateLimite(dl.toLocalDate());
+                alertes.add(a);
+            }
+            return alertes;
         }
-
-        rs.close();
-        stmt.close();
-        return alertes;
     }
 
-    public String getConditionnementByIdLot(String idLot, Connection conn){
+    /**
+     * Détermine le type de conditionnement du lot: "Preconditionne" si présent dans LotPreconditionne,
+     * "Vrac" si présent dans LotVrac, sinon null.
+     */
+    public String getConditionnementByIdLot(String idLot, Connection conn) throws SQLException {
+        if (idLot == null || conn == null) return null;
         String sqlPre = "SELECT 1 FROM LotPreconditionne WHERE idLot = ?";
-        String sqlVra = "SELECT 1 FROM LotVrac WHERE idLot = ?";
-        try{
-            PreparedStatement pstmtPre = conn.prepareStatement(sqlPre);
-            pstmtPre.setString(1, idLot);
-            ResultSet rsPre = pstmtPre.executeQuery();
-            if(rsPre.next()){
-                return "Preconditionne";
+        try (PreparedStatement ps = conn.prepareStatement(sqlPre)) {
+            ps.setString(1, idLot);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return "Preconditionne";
             }
-            PreparedStatement pstmtVra = conn.prepareStatement(sqlVra);
-            pstmtVra.setString(1, idLot);
-            ResultSet rsVra = pstmtVra.executeQuery();
-            if(rsVra.next()){
-                return "Vrac";
-            }
-        } catch (SQLException e){
-            e.printStackTrace();
         }
-        return "inconnu";
-    }
-
-    public LocalDate getDatePeremptionByIdLot(String idLot, Connection conn){
-        String sql = "SELECT dateLimite FROM Lot WHERE idLot = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, idLot);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                Date dateLimite = rs.getDate("dateLimite");
-                return dateLimite != null ? dateLimite.toLocalDate() : null;
+        String sqlVrac = "SELECT 1 FROM LotVrac WHERE idLot = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sqlVrac)) {
+            ps.setString(1, idLot);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return "Vrac";
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
 
+    /**
+     * Retourne la date de péremption (dateLimite) du lot ou null si introuvable.
+     */
+    public LocalDate getDatePeremptionByIdLot(String idLot, Connection conn) throws SQLException {
+        if (idLot == null || conn == null) return null;
+        String sql = "SELECT dateLimite FROM Lot WHERE idLot = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idLot);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Date d = rs.getDate("dateLimite");
+                    return d != null ? d.toLocalDate() : null;
+                }
+            }
+        }
+        return null;
+    }
 }
