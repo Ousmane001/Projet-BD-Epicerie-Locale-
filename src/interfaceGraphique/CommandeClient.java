@@ -262,24 +262,6 @@ public class CommandeClient extends JFrame {
         String typeConditionnement;
         int quantite = 0;
         
-        // if (choix == 0) {
-        //     // Préconditionné
-        //     typeConditionnement = "Preconditionne";
-        //     String qteStr = JOptionPane.showInputDialog(this,
-        //         "Quantité (nombre de sachets) :",
-        //         "Quantité",
-        //         JOptionPane.QUESTION_MESSAGE);
-        //     if (qteStr == null || qteStr.trim().isEmpty()) return;
-        //     try {
-        //         quantite = Integer.parseInt(qteStr.trim());
-        //         if (quantite <= 0) {
-        //             JOptionPane.showMessageDialog(this, "Quantité invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
-        //             return;
-        //         }
-        //     } catch (NumberFormatException e) {
-        //         JOptionPane.showMessageDialog(this, "Quantité invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
-        //         return;
-        //     }
         if (choix == 0) {
             typeConditionnement = "Preconditionne";
             // 2️⃣ Récupérer les poids disponibles depuis la DB
@@ -293,7 +275,7 @@ public class CommandeClient extends JFrame {
                 return;
             }
 
-            // 3️⃣ Proposer une liste de choix
+            // Proposer une liste de choix
             String[] optionsPoids = poidsDisponibles.stream()
                                 .map(p -> p + " kg")
                                 .toArray(String[]::new);
@@ -311,7 +293,7 @@ public class CommandeClient extends JFrame {
 
             float poidsSachet = poidsDisponibles.get(choixPoids);
 
-            // 1️⃣ Choix de la quantité
+            // Choix de la quantité
             String qteStr = JOptionPane.showInputDialog(this,
                     "Quantité (nombre de sachets) :",
                     "Quantité",
@@ -327,9 +309,6 @@ public class CommandeClient extends JFrame {
                 return;
             }
 
-            
-            // it.setPoidsSachet(poidsSachet);
-            // it.setQuantite(quantite);
         
         } else {
             // Vrac
