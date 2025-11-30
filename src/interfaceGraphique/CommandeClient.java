@@ -509,7 +509,6 @@ public class CommandeClient extends JFrame {
                 "Erreur lors de la création de la commande :\n" + ex.getMessage(), 
                 "Erreur", 
                 JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
         }
     }
 

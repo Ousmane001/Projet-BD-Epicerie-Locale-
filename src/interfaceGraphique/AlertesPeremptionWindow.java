@@ -169,7 +169,6 @@ public class AlertesPeremptionWindow extends JFrame {
                 "Erreur lors du chargement des alertes:\n" + e.getMessage(),
                 "Erreur",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
         }
     }
 
@@ -217,7 +216,6 @@ public class AlertesPeremptionWindow extends JFrame {
             chargerAlertes();
 
         } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }

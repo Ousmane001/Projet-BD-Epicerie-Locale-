@@ -15,7 +15,6 @@ public class JdbcDriverLoader{
             System.out.println(">> Driver JDBC Oracle chargé avec succès !");
         } catch (SQLException e) {
             System.err.println("Erreur lors du chargement du driver Oracle :");
-            e.printStackTrace();
         }
 
     }

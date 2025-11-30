@@ -103,7 +103,6 @@ public class CommandeFinale {
         conn.commit();
 
     } catch (SQLException e) {
-        e.printStackTrace();
         throw e; // rollback automatique via try-with-resources ou à gérer explicitement
     }
 }

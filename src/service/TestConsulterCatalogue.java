@@ -58,7 +58,6 @@ public class TestConsulterCatalogue {
             
         } catch (Exception e) {
             System.err.println("Erreur lors des tests:");
-            e.printStackTrace();
         } finally {
             // Fermeture de la connexion
             DataSourceProvider.closeConnection();

@@ -23,7 +23,6 @@ public class ProduitDAO {
                 if (rs.next()) return rs.getString("idProducteur");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -37,7 +36,6 @@ public class ProduitDAO {
                 if (rs.next()) return rs.getFloat("prixVenteClient");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -51,7 +49,6 @@ public class ProduitDAO {
                 if (rs.next()) return rs.getFloat("poidsSachet");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -66,7 +63,6 @@ public class ProduitDAO {
                 return rs.next();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -106,7 +102,6 @@ public class ProduitDAO {
                 produits.add(prod);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return produits;
     }

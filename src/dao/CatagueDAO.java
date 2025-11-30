@@ -83,7 +83,6 @@ public class CatagueDAO {
             
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération des produits du catalogue:");
-            e.printStackTrace();
         }
         
         return produits;
@@ -102,7 +101,6 @@ public class CatagueDAO {
             }
             result = sb.toString();
         } catch (SQLException | IOException e) {
-            e.printStackTrace();
             // Gestion des erreurs : afficher ou logger l'exception
         }
     }
@@ -128,7 +126,6 @@ public class CatagueDAO {
             
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération des catégories:");
-            e.printStackTrace();
         }
         
         return categories;
@@ -206,7 +203,6 @@ public class CatagueDAO {
             
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération du produit:");
-            e.printStackTrace();
         }
         
         return null;

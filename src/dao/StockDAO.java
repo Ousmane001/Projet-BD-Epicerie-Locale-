@@ -11,7 +11,6 @@ public class StockDAO {
             pstmt.setString(1, idStock);
             return pstmt.executeQuery();
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -26,7 +25,6 @@ public class StockDAO {
                 if (rs.next()) return rs.getString("idStock");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -40,7 +38,6 @@ public class StockDAO {
                 if (rs.next()) return rs.getInt("quantiteDisponiblePreconditionne");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -54,7 +51,6 @@ public class StockDAO {
                 if (rs.next()) return rs.getDouble("quantiteDisponibleVrac");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }

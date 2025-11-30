@@ -27,7 +27,6 @@ public class AdresseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list;
     }
@@ -56,7 +55,6 @@ public class AdresseDAO {
             return new Adresse(idAdresse, rue, ville, codePostal);
         } catch (SQLException e) {
             try { conn.rollback(); } catch (SQLException ignore) {}
-            e.printStackTrace();
             return null;
         } finally {
             try { if (psAdresse != null) psAdresse.close(); } catch (SQLException ignore) {}

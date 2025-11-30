@@ -46,7 +46,6 @@ public class StockService {
             }
             return quantiteRestante <= 0;
         } catch (Exception e) {
-            e.printStackTrace();
             return false;
         }
     }

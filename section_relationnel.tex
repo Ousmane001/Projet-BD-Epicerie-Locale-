@@ -1,0 +1,527 @@
+\section{RELATIONNEL}
+
+\subsection{Traduction du diagramme Entité-Association}
+
+On a traduit notre diagramme Entité-Association en un schéma relationnel composé de 25 tables. On présente ci-dessous la traduction littérale de chaque table avec ses attributs, clés primaires, clés étrangères et contraintes.
+
+\subsubsection{Entités simples}
+
+\begin{itemize}
+    \item \textbf{Contact}(\underline{idContact}, nom, prénom, numTel, email)
+    \begin{itemize}
+        \item Contraintes : \texttt{nom NOT NULL}, \texttt{prenom NOT NULL}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item Un contact est soit celui d'un producteur, soit celui d'un client (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Client}(\underline{idClient}, idContact)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idContact} référence \texttt{Contact(idContact)} ON DELETE CASCADE
+        \item Contraintes : \texttt{idContact NOT NULL UNIQUE}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item Droit à l'oubli : un client peut demander la suppression de ses données personnelles. Cette contrainte nécessite une gestion particulière au niveau applicatif pour supprimer les données tout en conservant l'historique des commandes si nécessaire.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Adresse}(\underline{idAdresse}, rue, ville, codePostal)
+    \begin{itemize}
+        \item Contraintes : \texttt{rue NOT NULL}, \texttt{ville NOT NULL}, \texttt{codePostal NOT NULL}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item Une adresse est soit celle d'un producteur, soit celle d'un client (via PossedeAdresse). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Producteur}(\underline{idProducteur}, lattitude, longitude, idAdresse, idContact)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idAdresse} référence \texttt{Adresse(idAdresse)}
+        \item Clé étrangère : \texttt{idContact} référence \texttt{Contact(idContact)} ON DELETE CASCADE
+        \item Contraintes : \texttt{idAdresse NOT NULL}, \texttt{idContact NOT NULL UNIQUE}
+    \end{itemize}
+    
+    \item \textbf{TypeActivite}(\underline{typeActivite})
+    \begin{itemize}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{typeActivite} appartient à un ensemble de valeurs prédéfinies (ex: "Agriculteur", "Éleveur", "Apiculteur", "Maraîcher", "Viticulteur"). Cette contrainte est partiellement gérée par la table elle-même, mais l'ajout de nouveaux types doit être contrôlé au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Contenant}(\underline{referenceContenant}, typeContenant, capaciteContenant, stockContenant, caractereContenant, prixContenant)
+    \begin{itemize}
+        \item Contraintes : \texttt{typeContenant NOT NULL}, \texttt{capaciteContenant NOT NULL}, \texttt{stockContenant NOT NULL}, \texttt{caractereContenant NOT NULL}, \texttt{prixContenant NOT NULL}
+        \item Contraintes textuelles : \texttt{capaciteContenant > 0}, \texttt{stockContenant >= 0}, \texttt{caractereContenant IN ('Réutilisable', 'Non-Réutilisable')}, \texttt{prixContenant >= 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{typeContenant} appartient à un ensemble de valeurs prédéfinies (ex: "Bocaux en verre réutilisable", "sachet kraft"). Cette contrainte doit être vérifiée au niveau applicatif.
+            \item \texttt{caractereContenant} appartient à l'ensemble \{'Réutilisable', 'Non-Réutilisable'\} (déjà géré par CHECK, mais l'ajout de nouvelles valeurs doit être contrôlé).
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Disponibilite}(\underline{idDisponibilite}, debutDisponibilite, finDisponibilite, statutProduit)
+    \begin{itemize}
+        \item Contraintes : \texttt{debutDisponibilite NOT NULL}, \texttt{finDisponibilite NOT NULL}, \texttt{statutProduit NOT NULL}
+        \item Contraintes textuelles : \texttt{statutProduit IN ('Disponible', 'Pas disponible')}, \texttt{finDisponibilite >= debutDisponibilite}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{statutProduit} appartient à l'ensemble \{'Disponible', 'Pas disponible'\} (déjà géré par CHECK).
+            \item \texttt{finDisponibilite > debutDisponibilite} : la fin de disponibilité doit être strictement postérieure au début (déjà géré par CHECK avec >=, mais on pourrait vouloir >).
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Perte}(\underline{idPerte}, datePerte, naturePerte)
+    \begin{itemize}
+        \item Contraintes : \texttt{datePerte NOT NULL}, \texttt{naturePerte NOT NULL}
+        \item Contraintes textuelles : \texttt{naturePerte IN ('Vol', 'Casse')}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{naturePerte} appartient à l'ensemble \{'Vol', 'Casse'\} (déjà géré par CHECK, mais l'ajout de nouvelles valeurs doit être contrôlé).
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Produit}(\underline{idProduit}, \underline{idProducteur}, categorie, description, bio, label, nomProduit, allergene, origineGeographique, delaiDisponibilite)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idProducteur} référence \texttt{Producteur(idProducteur)} ON DELETE CASCADE
+        \item Contraintes : \texttt{categorie NOT NULL}, \texttt{nomProduit NOT NULL}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{categorie} appartient à un ensemble de valeurs prédéfinies (ex: "Fromage", "Boissons", "Céréales"). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Stock}(\underline{idStock}, idProduit, idProducteur)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{(idProduit, idProducteur)} référence \texttt{Produit(idProduit, idProducteur)} ON DELETE CASCADE
+        \item Contraintes : \texttt{idProduit NOT NULL}, \texttt{idProducteur NOT NULL}
+    \end{itemize}
+    
+    \item \textbf{Commande}(\underline{idCommande}, dateCommande, dateRecuperation, datePaiement, heureCommande, statutCommande, modePaiement, modeRecuperation, idClient)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idClient} référence \texttt{Client(idClient)} ON DELETE CASCADE
+        \item Contraintes : \texttt{dateCommande NOT NULL}, \texttt{heureCommande NOT NULL}, \texttt{statutCommande NOT NULL}, \texttt{modePaiement NOT NULL}, \texttt{modeRecuperation NOT NULL}, \texttt{idClient NOT NULL}
+        \item Contraintes textuelles : \texttt{statutCommande IN ('En préparation', 'Prête', 'En livraison', 'Annulée', 'Récupérée/Livrée')}, \texttt{modePaiement IN ('En ligne', 'En Boutique')}, \texttt{modeRecuperation IN ('Boutique', 'Domicile')}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{statutCommande} appartient à l'ensemble \{'En préparation', 'Prête', 'En livraison', 'Annulée', 'Récupérée/Livrée'\} (déjà géré par CHECK).
+            \item \texttt{modePaiement} appartient à l'ensemble \{'En ligne', 'En Boutique'\} (déjà géré par CHECK).
+            \item \texttt{modeRecuperation} appartient à l'ensemble \{'Boutique', 'Domicile'\} (déjà géré par CHECK).
+            \item Annulation par le client autorisée tant que la commande est "En préparation". Cette contrainte doit être vérifiée au niveau applicatif.
+            \item Paiement en boutique uniquement si le statut est "Prête". Cette contrainte doit être vérifiée au niveau applicatif.
+            \item Pas de statut "En préparation" pour une commande avec le mode de récupération "Boutique". Cette contrainte doit être vérifiée au niveau applicatif.
+            \item \texttt{dateRecuperation} et \texttt{datePaiement} sont non NULL si \texttt{statutCommande = 'Récupérée/Livrée'}. Cette contrainte doit être vérifiée au niveau applicatif.
+            \item Pas de possibilité de payer en boutique si le mode de récupération est "Domicile" (livraison). Cette contrainte doit être vérifiée au niveau applicatif.
+            \item \texttt{dateRecuperation >= dateCommande}. Cette contrainte doit être vérifiée au niveau applicatif.
+            \item \texttt{datePaiement <= dateRecuperation} (si les deux sont non NULL). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{ModeRecuperationDomicile}(\underline{idModeRecuperationDomicile}, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idCommande} référence \texttt{Commande(idCommande)} ON DELETE CASCADE
+        \item Clé étrangère : \texttt{idAdresse} référence \texttt{Adresse(idAdresse)}
+        \item Contraintes : \texttt{paysLivraison NOT NULL}, \texttt{poidsTotalCommande NOT NULL}, \texttt{distanceAdresseBoutique NOT NULL}, \texttt{typePaysLivraison NOT NULL}, \texttt{idCommande NOT NULL UNIQUE}, \texttt{idAdresse NOT NULL}
+        \item Contraintes textuelles : \texttt{poidsTotalCommande > 0}, \texttt{distanceAdresseBoutique >= 0}, \texttt{typePaysLivraison IN ('France Métropolitaine', 'DOM-TOM', 'International')}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{typePaysLivraison} appartient à l'ensemble \{'France Métropolitaine', 'DOM-TOM', 'International'\} (déjà géré par CHECK).
+            \item La date de livraison (\texttt{dateEstimeeLivraison}) doit être communiquée au client. Cette contrainte nécessite une notification au niveau applicatif.
+            \item \texttt{dateEstimeeLivraison >= dateCommande} (de la commande associée). Cette contrainte doit être vérifiée au niveau applicatif.
+            \item \texttt{poidsTotalCommande > 0} (déjà géré par CHECK).
+            \item \texttt{distanceAdresseBoutique >= 0} (déjà géré par CHECK, non-négativité).
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{LigneCommande}(\underline{idLigneCommande}, \underline{idCommande}, prixUnitaire, sousTotalLigne)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idCommande} référence \texttt{Commande(idCommande)} ON DELETE CASCADE
+        \item Contraintes : \texttt{prixUnitaire NOT NULL}, \texttt{sousTotalLigne NOT NULL}, \texttt{idCommande NOT NULL}
+        \item Contraintes textuelles : \texttt{prixUnitaire >= 0}, \texttt{sousTotalLigne >= 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{prixUnitaire >= 0} (déjà géré par CHECK, non-négativité).
+            \item \texttt{sousTotalLigne >= 0} (déjà géré par CHECK, non-négativité).
+            \item Le total de la commande doit être égal à la somme des \texttt{sousTotalLigne} de toutes les lignes. Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Sous-types d'entités}
+
+\begin{itemize}
+    \item \textbf{Lot}(\underline{idLot}, dateReception, dateLimite, typeDateLimite, idStock)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idStock} référence \texttt{Stock(idStock)} ON DELETE CASCADE
+        \item Contraintes : \texttt{dateReception NOT NULL}, \texttt{dateLimite NOT NULL}, \texttt{typeDateLimite NOT NULL}
+        \item Contraintes textuelles : \texttt{typeDateLimite IN ('DLC', 'DLUO')}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{typeDateLimite} appartient à l'ensemble \{'DLC', 'DLUO'\} (déjà géré par CHECK).
+            \item \texttt{dateLimite >= dateReception}. Cette contrainte doit être vérifiée au niveau applicatif.
+            \item Un lot correspond à une livraison à l'épicerie d'un jour particulier. Cette contrainte sémantique doit être respectée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{LotVrac}(\underline{idLot}, quantiteDisponibleVrac)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idLot} référence \texttt{Lot(idLot)} ON DELETE CASCADE
+        \item Contraintes : \texttt{quantiteDisponibleVrac NOT NULL}
+        \item Contraintes textuelles : \texttt{quantiteDisponibleVrac > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{quantiteDisponibleVrac > 0} (déjà géré par CHECK, positivité).
+            \item Un lot ne peut être à la fois vrac ET préconditionné (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+            \item La quantité disponible doit être cohérente avec les quantités commandées et les pertes. Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{LotPreconditionne}(\underline{idLot}, quantiteDisponiblePreconditionne)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idLot} référence \texttt{Lot(idLot)} ON DELETE CASCADE
+        \item Contraintes : \texttt{quantiteDisponiblePreconditionne NOT NULL}
+        \item Contraintes textuelles : \texttt{quantiteDisponiblePreconditionne > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{quantiteDisponiblePreconditionne > 0} (déjà géré par CHECK, positivité).
+            \item \texttt{quantiteDisponiblePreconditionne >= 0} (non-négativité, mais le CHECK impose > 0, donc c'est cohérent).
+            \item Un lot ne peut être à la fois vrac ET préconditionné (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+            \item La quantité disponible doit être cohérente avec les quantités commandées et les pertes. Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{Conditionnement}(\underline{idConditionnement}, prixAchatProducteur, prixVenteClient, idProduit, idProducteur)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{(idProduit, idProducteur)} référence \texttt{Produit(idProduit, idProducteur)} ON DELETE CASCADE
+        \item Contraintes : \texttt{prixAchatProducteur NOT NULL}, \texttt{prixVenteClient NOT NULL}
+        \item Contraintes textuelles : \texttt{prixAchatProducteur >= 0}, \texttt{prixVenteClient >= 0}
+    \end{itemize}
+    
+    \item \textbf{ConditionnementPreconditionne}(\underline{idConditionnement}, poidsSachet)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idConditionnement} référence \texttt{Conditionnement(idConditionnement)} ON DELETE CASCADE
+        \item Contraintes : \texttt{poidsSachet NOT NULL}
+        \item Contraintes textuelles : \texttt{poidsSachet > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{poidsSachet > 0} (déjà géré par CHECK, positivité).
+            \item Un conditionnement ne peut être à la fois vrac ET préconditionné (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{ConditionnementVrac}(\underline{idConditionnement})
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idConditionnement} référence \texttt{Conditionnement(idConditionnement)} ON DELETE CASCADE
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item Un conditionnement ne peut être à la fois vrac ET préconditionné (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+            \item Un seul conditionnement vrac pour un même produit et producteur. Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{LigneCommandeContenant}(\underline{idLigneCommande}, \underline{idCommande}, quantiteCommandeContenant)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{(idLigneCommande, idCommande)} référence \texttt{LigneCommande(idLigneCommande, idCommande)} ON DELETE CASCADE
+        \item Contraintes : \texttt{quantiteCommandeContenant NOT NULL}
+        \item Contraintes textuelles : \texttt{quantiteCommandeContenant > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{quantiteCommandeContenant > 0} (déjà géré par CHECK, positivité).
+            \item Une ligne de commande ne peut être à la fois produit ET contenant (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{LigneCommandeProduit}(\underline{idLigneCommande}, \underline{idCommande}, idProduit, idProducteur)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{(idLigneCommande, idCommande)} référence \texttt{LigneCommande(idLigneCommande, idCommande)} ON DELETE CASCADE
+        \item Clé étrangère : \texttt{(idProduit, idProducteur)} référence \texttt{Produit(idProduit, idProducteur)}
+        \item Contraintes : \texttt{idProduit NOT NULL}, \texttt{idProducteur NOT NULL}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item Une ligne de commande ne peut être à la fois produit ET contenant (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{LigneCommandeProduitVrac}(\underline{idLigneCommande}, \underline{idCommande}, quantiteCommandeVrac)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{(idLigneCommande, idCommande)} référence \texttt{LigneCommandeProduit(idLigneCommande, idCommande)} ON DELETE CASCADE
+        \item Contraintes : \texttt{quantiteCommandeVrac NOT NULL}
+        \item Contraintes textuelles : \texttt{quantiteCommandeVrac > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{quantiteCommandeVrac > 0} (déjà géré par CHECK, positivité).
+            \item Une ligne de commande produit ne peut être à la fois vrac ET préconditionné (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+            \item La quantité commandée doit être inférieure ou égale à la quantité disponible dans le lot. Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{LigneCommandeProduitPreconditionne}(\underline{idLigneCommande}, \underline{idCommande}, quantiteCommandePreconditionne)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{(idLigneCommande, idCommande)} référence \texttt{LigneCommandeProduit(idLigneCommande, idCommande)} ON DELETE CASCADE
+        \item Contraintes : \texttt{quantiteCommandePreconditionne NOT NULL}
+        \item Contraintes textuelles : \texttt{quantiteCommandePreconditionne > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{quantiteCommandePreconditionne > 0} (déjà géré par CHECK, positivité).
+            \item Une ligne de commande produit ne peut être à la fois vrac ET préconditionné (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+            \item La quantité commandée doit être inférieure ou égale à la quantité disponible dans le lot. Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{PerteProduit}(\underline{idPerte}, idProduit, idProducteur)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idPerte} référence \texttt{Perte(idPerte)} ON DELETE CASCADE
+        \item Clé étrangère : \texttt{(idProduit, idProducteur)} référence \texttt{Produit(idProduit, idProducteur)}
+        \item Contraintes : \texttt{idProduit NOT NULL}, \texttt{idProducteur NOT NULL}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item Une perte ne peut être à la fois produit ET contenant (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{PerteProduitPreconditionne}(\underline{idPerte}, quantitePerduePreconditionne)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idPerte} référence \texttt{PerteProduit(idPerte)} ON DELETE CASCADE
+        \item Contraintes : \texttt{quantitePerduePreconditionne NOT NULL}
+        \item Contraintes textuelles : \texttt{quantitePerduePreconditionne > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{quantitePerduePreconditionne > 0} (déjà géré par CHECK, positivité).
+            \item Une perte produit ne peut être à la fois vrac ET préconditionné (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{PerteProduitVrac}(\underline{idPerte}, quantitePerdueVrac)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idPerte} référence \texttt{PerteProduit(idPerte)} ON DELETE CASCADE
+        \item Contraintes : \texttt{quantitePerdueVrac NOT NULL}
+        \item Contraintes textuelles : \texttt{quantitePerdueVrac > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{quantitePerdueVrac > 0} (déjà géré par CHECK, positivité).
+            \item Une perte produit ne peut être à la fois vrac ET préconditionné (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+    
+    \item \textbf{PerteContenant}(\underline{idPerte}, quantitePerdueContenant, referenceContenant)
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idPerte} référence \texttt{Perte(idPerte)} ON DELETE CASCADE
+        \item Clé étrangère : \texttt{referenceContenant} référence \texttt{Contenant(referenceContenant)}
+        \item Contraintes : \texttt{quantitePerdueContenant NOT NULL}, \texttt{referenceContenant NOT NULL}
+        \item Contraintes textuelles : \texttt{quantitePerdueContenant > 0}
+        \item \textbf{Contraintes non implantables} :
+        \begin{itemize}
+            \item \texttt{quantitePerdueContenant > 0} (déjà géré par CHECK, positivité).
+            \item Une perte ne peut être à la fois produit ET contenant (exclusivité mutuelle). Cette contrainte doit être vérifiée au niveau applicatif.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Associations}
+
+\begin{itemize}
+    \item \textbf{PossedeAdresse}(\underline{idClient}, \underline{idAdresse})
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idClient} référence \texttt{Client(idClient)} ON DELETE CASCADE
+        \item Clé étrangère : \texttt{idAdresse} référence \texttt{Adresse(idAdresse)} ON DELETE CASCADE
+    \end{itemize}
+    
+    \item \textbf{Exerce}(\underline{idProducteur}, \underline{typeActivite})
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idProducteur} référence \texttt{Producteur(idProducteur)} ON DELETE CASCADE
+        \item Clé étrangère : \texttt{typeActivite} référence \texttt{TypeActivite(typeActivite)} ON DELETE CASCADE
+    \end{itemize}
+    
+    \item \textbf{ProduitEstDisponible}(\underline{idProduit}, \underline{idProducteur}, \underline{idDisponibilite})
+    \begin{itemize}
+        \item Clé étrangère : \texttt{(idProduit, idProducteur)} référence \texttt{Produit(idProduit, idProducteur)} ON DELETE CASCADE
+        \item Clé étrangère : \texttt{idDisponibilite} référence \texttt{Disponibilite(idDisponibilite)} ON DELETE CASCADE
+    \end{itemize}
+    
+    \item \textbf{PeutEtreUtiliseAvec}(\underline{idConditionnement}, \underline{referenceContenant})
+    \begin{itemize}
+        \item Clé étrangère : \texttt{idConditionnement} référence \texttt{ConditionnementVrac(idConditionnement)} ON DELETE CASCADE
+        \item Clé étrangère : \texttt{referenceContenant} référence \texttt{Contenant(referenceContenant)} ON DELETE CASCADE
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Justification des choix pour les sous-types d'entités}
+
+On a utilisé la technique de spécialisation par table pour gérer les relations d'héritage. Cette approche consiste à créer une table pour la classe mère et des tables séparées pour chaque sous-classe, avec une clé étrangère de la sous-classe vers la classe mère.
+
+\paragraph{Lot $\rightarrow$ LotVrac / LotPreconditionne}
+
+On a choisi cette modélisation car :
+
+\begin{itemize}
+    \item Les attributs spécifiques sont différents : \texttt{quantiteDisponibleVrac} (FLOAT) pour les lots vrac et \texttt{quantiteDisponiblePreconditionne} (INTEGER) pour les lots préconditionnés.
+    \item Les types de données diffèrent (FLOAT vs INTEGER), ce qui rend difficile une modélisation avec une seule table.
+    \item Un lot ne peut être qu'en vrac OU préconditionné, jamais les deux (exclusivité mutuelle).
+    \item La table \texttt{Lot} contient les attributs communs (idLot, dateReception, dateLimite, typeDateLimite, idStock).
+    \item Les tables \texttt{LotVrac} et \texttt{LotPreconditionne} héritent via \texttt{idLot} qui est à la fois leur clé primaire et une clé étrangère vers \texttt{Lot}.
+    \item Cette approche évite d'avoir beaucoup de valeurs NULL dans une table unique et permet une meilleure intégrité des données.
+\end{itemize}
+
+\paragraph{Conditionnement $\rightarrow$ ConditionnementVrac / ConditionnementPreconditionne}
+
+Même principe appliqué :
+
+\begin{itemize}
+    \item \texttt{Conditionnement} contient les attributs communs (idConditionnement, prixAchatProducteur, prixVenteClient, idProduit, idProducteur).
+    \item \texttt{ConditionnementPreconditionne} ajoute l'attribut spécifique \texttt{poidsSachet}.
+    \item \texttt{ConditionnementVrac} n'ajoute pas d'attribut mais permet de distinguer les conditionnements vrac pour les lier avec des contenants via la table \texttt{PeutEtreUtiliseAvec}.
+    \item Un conditionnement ne peut être qu'en vrac OU préconditionné (exclusivité mutuelle).
+    \item On a choisi cette approche plutôt qu'un attribut discriminant car elle permet une meilleure intégrité référentielle : on peut garantir qu'un conditionnement vrac n'apparaît pas dans \texttt{ConditionnementPreconditionne} et vice versa.
+\end{itemize}
+
+\paragraph{LigneCommande $\rightarrow$ LigneCommandeProduit / LigneCommandeContenant $\rightarrow$ LigneCommandeProduitVrac / LigneCommandeProduitPreconditionne}
+
+On a créé une hiérarchie de spécialisation à deux niveaux :
+
+\begin{itemize}
+    \item \textbf{Niveau 1} : \texttt{LigneCommande} est spécialisée en \texttt{LigneCommandeProduit} (pour les produits) et \texttt{LigneCommandeContenant} (pour les contenants).
+    \begin{itemize}
+        \item \texttt{LigneCommande} contient les attributs communs (idLigneCommande, idCommande, prixUnitaire, sousTotalLigne).
+        \item \texttt{LigneCommandeProduit} ajoute la référence au produit (idProduit, idProducteur).
+        \item \texttt{LigneCommandeContenant} ajoute la quantité de contenants commandés (quantiteCommandeContenant).
+    \end{itemize}
+    
+    \item \textbf{Niveau 2} : \texttt{LigneCommandeProduit} est spécialisée en \texttt{LigneCommandeProduitVrac} et \texttt{LigneCommandeProduitPreconditionne}.
+    \begin{itemize}
+        \item \texttt{LigneCommandeProduitVrac} ajoute \texttt{quantiteCommandeVrac} (FLOAT).
+        \item \texttt{LigneCommandeProduitPreconditionne} ajoute \texttt{quantiteCommandePreconditionne} (INTEGER).
+    \end{itemize}
+    
+    \item On a choisi cette modélisation car :
+    \begin{itemize}
+        \item Les attributs et traitements diffèrent selon le type de ligne (produit vs contenant).
+        \item Pour les produits, la quantité est exprimée différemment selon le type de conditionnement (vrac en poids, préconditionné en unités).
+        \item Cela permet une meilleure intégrité des données et évite les valeurs NULL inutiles.
+    \end{itemize}
+\end{itemize}
+
+\paragraph{Perte $\rightarrow$ PerteProduit / PerteContenant $\rightarrow$ PerteProduitVrac / PerteProduitPreconditionne}
+
+Même principe appliqué pour les pertes :
+
+\begin{itemize}
+    \item \texttt{Perte} contient les informations communes (idPerte, datePerte, naturePerte).
+    \item \texttt{PerteProduit} référence un produit (idProduit, idProducteur) et peut être spécialisée en \texttt{PerteProduitVrac} ou \texttt{PerteProduitPreconditionne}.
+    \item \texttt{PerteContenant} référence un contenant avec une quantité perdue.
+    \item On a choisi cette approche pour distinguer les pertes de produits (qui nécessitent une référence au produit) des pertes de contenants (qui nécessitent une référence au contenant).
+\end{itemize}
+
+\subsection{Formes normales}
+
+\subsubsection{Troisième forme normale (3NF)}
+
+On a vérifié que nos tables respectent la 3NF en s'assurant qu'il n'y a pas de dépendances fonctionnelles transitives entre attributs non-clés :
+
+\begin{itemize}
+    \item \textbf{Producteur(idProducteur, lattitude, longitude, idAdresse, idContact)} : 
+    \begin{itemize}
+        \item \texttt{idAdresse} et \texttt{idContact} sont des clés étrangères, donc pas de dépendance transitive problématique.
+        \item \texttt{lattitude} et \texttt{longitude} dépendent directement de \texttt{idProducteur} (coordonnées du producteur).
+        \item Pas de dépendance transitive.
+    \end{itemize}
+    
+    \item \textbf{Client(idClient, idContact)} : Pas de dépendance transitive, la table est minimale.
+    
+    \item \textbf{Adresse(idAdresse, rue, ville, codePostal)} : 
+    \begin{itemize}
+        \item On pourrait penser qu'il y a une dépendance \texttt{codePostal} $\rightarrow$ \texttt{ville}, mais dans notre modèle, on a choisi de ne pas l'implémenter car :
+        \begin{itemize}
+            \item Un code postal peut correspondre à plusieurs villes (cas des grandes villes avec plusieurs arrondissements).
+            \item On veut permettre la flexibilité pour les adresses internationales où cette dépendance n'est pas toujours vraie.
+        \end{itemize}
+        \item Si on voulait normaliser davantage, on pourrait créer une table \texttt{CodePostal(codePostal, ville)} et faire référence à \texttt{codePostal} dans \texttt{Adresse}, mais on a jugé que ce n'était pas nécessaire pour notre application.
+    \end{itemize}
+    
+    \item \textbf{Conditionnement(idConditionnement, prixAchatProducteur, prixVenteClient, idProduit, idProducteur)} :
+    \begin{itemize}
+        \item Les prix dépendent directement de \texttt{idConditionnement}.
+        \item La référence au produit (idProduit, idProducteur) est nécessaire pour savoir quel produit est conditionné.
+        \item Pas de dépendance transitive problématique.
+    \end{itemize}
+    
+    \item \textbf{ModeRecuperationDomicile(idModeRecuperationDomicile, paysLivraison, typePaysLivraison, ...)} :
+    \begin{itemize}
+        \item On pourrait penser qu'il y a une dépendance \texttt{paysLivraison} $\rightarrow$ \texttt{typePaysLivraison}, mais on a choisi de stocker les deux car :
+        \begin{itemize}
+            \item Le type de pays est une catégorisation métier (France Métropolitaine, DOM-TOM, International) qui peut être calculée à partir du pays, mais on préfère la stocker pour des raisons de performance et de clarté.
+            \item Cette dépendance n'est pas problématique car elle ne crée pas d'anomalies d'insertion, de mise à jour ou de suppression dans notre contexte.
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Forme normale de Boyce-Codd (BCNF)}
+
+On a analysé nos tables pour vérifier la BCNF. La plupart de nos tables sont presque en BCNF :
+
+\begin{itemize}
+    \item Les clés primaires sont simples ou bien composées de manière cohérente.
+    \item Il n'y a pas de dépendances fonctionnelles où un attribut non-clé détermine un autre attribut non-clé de manière problématique.
+    
+    \item \textbf{Cas particulier - Adresse} : Comme mentionné précédemment, on pourrait avoir une dépendance \texttt{codePostal} $\rightarrow$ \texttt{ville}, mais on a choisi de ne pas la modéliser explicitement pour des raisons de flexibilité. Si on voulait être strictement en BCNF, on devrait créer une table \texttt{CodePostal} séparée.
+    
+    \item \textbf{Cas particulier - ModeRecuperationDomicile} : La dépendance \texttt{paysLivraison} $\rightarrow$ \texttt{typePaysLivraison} pourrait être normalisée, mais on a choisi de la conserver pour des raisons pratiques.
+\end{itemize}
+
+\subsection{Contraintes applicatives non implantables}
+
+En plus des contraintes listées après chaque table, voici les contraintes applicatives globales qui ne peuvent pas être exprimées directement dans le schéma relationnel :
+
+\subsubsection{Gestion de la disponibilité}
+
+La disponibilité d'un produit dépend de plusieurs facteurs :
+
+\begin{itemize}
+    \item \textbf{Pour les produits en stock} :
+    \begin{itemize}
+        \item Si la quantité en stock est suffisante : disponibilité immédiate.
+        \item Si hors saison : indisponible avec indication de la prochaine période de disponibilité.
+    \end{itemize}
+    
+    \item \textbf{Pour les produits sur commande} (certains produits rares ou spécifiques) :
+    \begin{itemize}
+        \item Le délai de disponibilité doit être spécifié par produit (exemple : 72h, 1 semaine).
+        \item Le client est informé du délai lors de sa commande.
+    \end{itemize}
+    
+    \item Le nombre de produits disponibles en stock doit être calculé en tenant compte des quantités commandées et des pertes. Cette contrainte nécessite des calculs au niveau applicatif.
+\end{itemize}
+
+\subsubsection{Contraintes de cohérence transactionnelle}
+
+\begin{itemize}
+    \item \textbf{Stock suffisant} : Avant de valider une commande, on doit vérifier que le stock disponible est suffisant pour satisfaire la commande. Cette contrainte ne peut pas être exprimée directement dans le schéma relationnel.
+    
+    \item \textbf{Cohérence des quantités} : Pour une \texttt{LigneCommandeProduitVrac}, la \texttt{quantiteCommandeVrac} doit être inférieure ou égale à la \texttt{quantiteDisponibleVrac} du lot correspondant. Cette vérification doit être faite au niveau applicatif.
+    
+    \item \textbf{Total de la commande} : Le montant total d'une commande doit être égal à la somme des \texttt{sousTotalLigne} de toutes les \texttt{LigneCommande} associées. Cette contrainte nécessite un calcul au niveau applicatif ou un trigger.
+    
+    \item \textbf{Quantité disponible} : La quantité disponible d'un lot (vrac ou préconditionné) doit être cohérente avec les quantités commandées et les pertes enregistrées. Cette contrainte nécessite des vérifications au niveau applicatif.
+\end{itemize}
+
+\subsubsection{Contraintes de cardinalité}
+
+\begin{itemize}
+    \item \textbf{Commande non vide} : Une commande doit contenir au moins une ligne (produit ou contenant). Cette contrainte de cardinalité minimale (1, N) ne peut pas être exprimée directement dans le schéma relationnel standard.
+    
+    \item \textbf{Stock avec au moins un lot} : Un stock devrait logiquement contenir au moins un lot, mais on ne peut pas l'exprimer directement dans le schéma.
+    
+    \item \textbf{Produit avec au moins un conditionnement} : Un produit devrait avoir au moins un conditionnement pour être vendable, mais cette contrainte n'est pas exprimable directement.
+    
+    \item \textbf{Client avec au moins une adresse} : Un client devrait avoir au moins une adresse, mais cette contrainte n'est pas exprimable directement (la relation \texttt{PossedeAdresse} est N-N, donc un client pourrait ne pas avoir d'adresse).
+\end{itemize}
+
+\subsubsection{Contraintes d'intégrité référentielle supplémentaires}
+
+\begin{itemize}
+    \item \textbf{ModeRecuperationDomicile uniquement si mode récupération = "Domicile"} : Une entrée dans \texttt{ModeRecuperationDomicile} ne doit exister que si le \texttt{modeRecuperation} de la commande associée est "Domicile". Cette contrainte doit être vérifiée au niveau applicatif.
+    
+    \item \textbf{Historique} : On ne peut pas exprimer directement dans le schéma qu'on doit conserver un historique des commandes passées, même si les produits sont supprimés. Cette contrainte nécessite une gestion particulière au niveau applicatif.
+    
+    \item \textbf{Cascade de suppression} : On a défini \texttt{ON DELETE CASCADE} pour la plupart des relations, mais certaines suppressions en cascade pourraient violer des contraintes métier. Par exemple, supprimer un produit devrait peut-être annuler les commandes en cours plutôt que de les supprimer.
+\end{itemize}

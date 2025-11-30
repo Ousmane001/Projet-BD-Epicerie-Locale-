@@ -307,7 +307,6 @@ public class Catalogue extends JFrame {
                 "Erreur lors de l'initialisation: " + e.getMessage(),
                 "Erreur",
                 javax.swing.JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
             System.exit(1);
         }
     }

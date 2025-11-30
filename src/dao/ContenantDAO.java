@@ -32,7 +32,6 @@ public class ContenantDAO {
                 contenants.add(c);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return contenants;

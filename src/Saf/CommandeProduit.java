@@ -89,7 +89,6 @@ public class CommandeProduit extends Commande {
             commandeContenant.enregistrerLigneCommandeContenant();
 
         } catch (SQLException e){
-            e.printStackTrace();
         }
 
                     commandeContenant.enregistrerLigneCommandeContenant();

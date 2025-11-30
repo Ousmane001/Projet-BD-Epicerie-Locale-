@@ -71,7 +71,6 @@ public class CommandeDAO {
             
         } catch (Exception e) {
             System.err.println("Erreur lors de l'encaissement de la commande:");
-            e.printStackTrace();
             return false;
         }
     }
@@ -96,7 +95,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors du calcul du montant total:");
-            e.printStackTrace();
         }
         
         return 0;
@@ -259,7 +257,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération du mode de récupération:");
-            e.printStackTrace();
         }
         
         return null;
@@ -283,7 +280,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération du mode de paiement:");
-            e.printStackTrace();
         }
         
         return null;
@@ -307,7 +303,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération du statut de la commande:");
-            e.printStackTrace();
         }
         
         return null;
@@ -334,7 +329,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la mise à jour du statut de la commande:");
-            e.printStackTrace();
         }
     }
     
@@ -357,7 +351,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de l'enregistrement de la date de récupération:");
-            e.printStackTrace();
         }
     }
 
@@ -379,7 +372,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération de l'ID du mode de livraison:");
-            e.printStackTrace();
         }
         
         return null;
@@ -433,7 +425,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors du calcul des frais de livraison:");
-            e.printStackTrace();
         }
         
         return 0;
@@ -497,7 +488,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors du calcul de la date estimée de livraison:");
-            e.printStackTrace();
         }
         
         return LocalDate.now();
@@ -527,7 +517,6 @@ public class CommandeDAO {
             }
         } catch (SQLException e) {
             System.err.println("Erreur lors de la récupération du délai de disponibilité maximal:");
-            e.printStackTrace();
         }
         
         return 0; // Aucun délai par défaut
@@ -574,7 +563,6 @@ public class CommandeDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -589,12 +577,12 @@ public class CommandeDAO {
                     return false; // déjà payé
                 }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { }
         String upd = "UPDATE Commande SET datePaiement = SYSDATE WHERE idCommande = ?";
         try (PreparedStatement ps = connection.prepareStatement(upd)) {
             ps.setString(1, idCommande);
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { }
         return false;
     }
 
@@ -609,7 +597,7 @@ public class CommandeDAO {
                             "Récupérée/Livrée".equals(rs.getString("statutCommande"));
                 }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { }
         return false;
     }
 

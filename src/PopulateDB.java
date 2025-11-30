@@ -96,11 +96,9 @@ public class PopulateDB {
             
         } catch (Exception e) {
             System.err.println("Erreur: " + e.getMessage());
-            e.printStackTrace();
             try {
                 conn.rollback();
             } catch (SQLException ex) {
-                ex.printStackTrace();
             }
         }
         

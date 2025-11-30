@@ -239,7 +239,6 @@ public class CommandeSAF {
             System.out.println("Commande passée avec succès ! Total : " + totalCommande + ", poids total : " + poidsTotalCommande);
 
         } catch (Exception e) {
-            e.printStackTrace();
             System.out.println("Erreur lors de la commande, rollback effectué.");
             // rollback automatique si connexion fermée après exception avec try-with-resources
         } finally {

@@ -18,7 +18,6 @@ public class DataSourceProvider {
             return DriverManager.getConnection(URL, USER, PASS);
         } catch (SQLException e) {
             System.err.println("[DB] Impossible d'obtenir une connexion");
-            e.printStackTrace();
             return null;
         }
     }

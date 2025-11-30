@@ -171,7 +171,6 @@ public class MenuPrincipal extends JFrame {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception e) {
-                e.printStackTrace();
             }
             new MenuPrincipal();
         });

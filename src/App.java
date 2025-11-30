@@ -64,7 +64,6 @@ public class App {
         } catch (Exception e) {
             System.err.println("\n ERREUR CRITIQUE lors de l'initialisation:");
             System.err.println("   " + e.getMessage());
-            e.printStackTrace();
             
             // Afficher un message d'erreur graphique si possible
             SwingUtilities.invokeLater(() -> {

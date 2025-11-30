@@ -218,7 +218,6 @@ public class ClotureCommandeWindow extends JFrame {
                 "Erreur lors de la consultation:\n" + e.getMessage(),
                 "Erreur",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
         }
     }
 
@@ -280,7 +279,6 @@ public class ClotureCommandeWindow extends JFrame {
                     " Erreur inattendue:\n" + e.getMessage(),
                     "Erreur",
                     JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
             }
         }
     }
@@ -313,7 +311,6 @@ public class ClotureCommandeWindow extends JFrame {
                 "Erreur inattendue: " + ex.getMessage(),
                 "Erreur",
                 JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
         }
     }
 

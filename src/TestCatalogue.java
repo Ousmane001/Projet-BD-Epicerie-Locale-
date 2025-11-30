@@ -35,7 +35,6 @@ public class TestCatalogue {
             }
         } catch (SQLException e) {
             System.err.println("Erreur requête Produit: " + e.getMessage());
-            e.printStackTrace();
         }
         
         // 4. Test de quelques produits
@@ -50,7 +49,6 @@ public class TestCatalogue {
             }
         } catch (SQLException e) {
             System.err.println("Erreur requête liste: " + e.getMessage());
-            e.printStackTrace();
         }
         
         // 5. Test de la requête complète du catalogue
@@ -80,7 +78,6 @@ public class TestCatalogue {
             System.out.println("Total trouvé : " + count);
         } catch (SQLException e) {
             System.err.println("Erreur requête catalogue: " + e.getMessage());
-            e.printStackTrace();
         }
         
         // 6. Vérifier les tables liées
