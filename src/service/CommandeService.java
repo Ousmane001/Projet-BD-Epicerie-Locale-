@@ -88,7 +88,17 @@ public class CommandeService {
                 int quantite = it.getQuantite();
                 // a) vérifier saisonnalité
                 boolean dispo = produitDAO.estDisponible(idProduit, idProducteur, new java.sql.Date(System.currentTimeMillis()));
-                if (!dispo) throw new SQLException("Produit hors saison: " + idProduit);
+                if (!dispo) {
+                    // Récupérer la prochaine disponibilité
+                    java.sql.Date prochaineDispo = produitDAO.getProchaineDisponibilite(idProduit, idProducteur);
+                    String message = "Produit hors saison: " + idProduit;
+                    if (prochaineDispo != null) {
+                        message += "\nProchaine disponibilité : " + prochaineDispo.toLocalDate();
+                    } else {
+                        message += "\nAucune période de disponibilité future prévue.";
+                    }
+                    throw new SQLException(message);
+                }
 
                 // b) vérifier stock
                 String idStock = stockDAO.getIdStock(idProduit, idProducteur, conn);
@@ -269,9 +279,9 @@ public class CommandeService {
                     ps.setString(1, idMode);
                     ps.setString(2, paysLivraison);
                     ps.setFloat(3, poidsTotalCommande);
-                    ps.setDate(4, java.sql.Date.valueOf(dateEstimeeLivraison));
-                    ps.setFloat(5, distanceLivraison);
-                    ps.setString(6, typePaysCanon);//probleme
+                    ps.setFloat(4, distanceLivraison);
+                    ps.setDate(5, java.sql.Date.valueOf(dateEstimeeLivraison));
+                    ps.setString(6, typePaysCanon);
                     ps.setString(7, idCommande);
                     ps.setString(8, idAdresseDomicile);
                     ps.executeUpdate();

@@ -67,6 +67,34 @@ public class ProduitDAO {
         return false;
     }
 
+    /**
+     * Récupère la prochaine date de disponibilité d'un produit
+     * @param idProduit L'identifiant du produit
+     * @param idProducteur L'identifiant du producteur
+     * @return La date de début de la prochaine période de disponibilité, ou null si aucune période future
+     */
+    public java.sql.Date getProchaineDisponibilite(String idProduit, String idProducteur) {
+        String sql = "SELECT MIN(d.debutDisponibilite) AS prochaineDispo " +
+                     "FROM ProduitEstDisponible ped " +
+                     "JOIN Disponibilite d ON ped.idDisponibilite = d.idDisponibilite " +
+                     "WHERE ped.idProduit = ? AND ped.idProducteur = ? " +
+                     "AND d.debutDisponibilite > TRUNC(SYSDATE)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idProduit);
+            ps.setString(2, idProducteur);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    java.sql.Date date = rs.getDate("prochaineDispo");
+                    if (!rs.wasNull()) {
+                        return date;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+        }
+        return null;
+    }
+
     public List<ProduitDisponible> getProduitsDisponibles() {
         List<ProduitDisponible> produits = new ArrayList<>();
         String sql = """

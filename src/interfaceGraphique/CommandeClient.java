@@ -540,8 +540,22 @@ public class CommandeClient extends JFrame {
                 typePaysLivraison
             );
             
+            // Si livraison à domicile, afficher les frais et date estimée
+            String messageSucces = "Commande validée avec succès !\nNuméro de commande : " + idCommande;
+            if ("Domicile".equals(modeRecuperation)) {
+                dao.CommandeDAO commandeDAO = new dao.CommandeDAO();
+                String idMode = commandeDAO.recupIdInfoLivraison(idCommande);
+                if (idMode != null) {
+                    int frais = commandeDAO.calculFraisDeLivraison(idMode);
+                    java.time.LocalDate dateEstimee = commandeDAO.calculDateEstimeeDeLivraison(idMode);
+                    messageSucces += "\n\nInformations de livraison :";
+                    messageSucces += "\nFrais de livraison : " + frais + " €";
+                    messageSucces += "\nDate estimée de livraison : " + dateEstimee;
+                }
+            }
+            
             JOptionPane.showMessageDialog(this, 
-                "Commande validée avec succès !\nNuméro de commande : " + idCommande, 
+                messageSucces, 
                 "Succès", 
                 JOptionPane.INFORMATION_MESSAGE);
             
