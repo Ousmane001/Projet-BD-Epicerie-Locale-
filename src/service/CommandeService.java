@@ -49,7 +49,18 @@ public class CommandeService {
         }
 
         Connection conn = DataSourceProvider.getValidConnection();
+        int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
+        
         try {
+            // Sauvegarder le niveau d'isolation actuel
+            oldIsolation = conn.getTransactionIsolation();
+            
+            // Isolation SERIALIZABLE pour garantir la cohérence du stock.
+            // On vérifie le stock disponible, puis on crée la commande.
+            // Sans cette isolation, le stock pourrait changer entre la vérification et la création,
+            // ce qui pourrait créer des commandes avec des produits non disponibles.
+            // Note: Oracle ne supporte que READ_COMMITTED et SERIALIZABLE, pas REPEATABLE_READ.
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             conn.setAutoCommit(false);
 
             String idCommande = generateId("CM");
@@ -258,7 +269,9 @@ public class CommandeService {
             try { conn.rollback(); } catch (SQLException ignore) {}
             throw e;
         } finally {
-            try { conn.setAutoCommit(true); } catch (SQLException ignore) {}
+            try {
+                conn.setTransactionIsolation(oldIsolation);
+            } catch (SQLException ignore) {}
         }
     }
 }

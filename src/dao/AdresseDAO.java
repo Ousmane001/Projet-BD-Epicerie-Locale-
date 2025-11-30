@@ -59,7 +59,6 @@ public class AdresseDAO {
             e.printStackTrace();
             return null;
         } finally {
-            try { conn.setAutoCommit(true); } catch (SQLException ignore) {}
             try { if (psAdresse != null) psAdresse.close(); } catch (SQLException ignore) {}
             try { if (psLink != null) psLink.close(); } catch (SQLException ignore) {}
         }

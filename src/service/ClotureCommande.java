@@ -1,7 +1,10 @@
 package service;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 
+import config.DataSourceProvider;
 import dao.CommandeDAO;
 import dao.CommandeDAO.CommandeInfo;
 
@@ -22,33 +25,53 @@ public class ClotureCommande {
      * Déclenche la sortie de stock et enregistre la date de paiement si paiement en ligne.
      */
     public void preparerCommande(String idCommande) {
-        CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
-        if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
-        if (!"Domicile".equals(info.modeRecuperation)) {
-            throw new IllegalStateException("La préparation explicite ne concerne que les commandes Domicile");
-        }
-        if (!"En préparation".equals(info.statut)) {
-            throw new IllegalStateException("Statut attendu 'En préparation' pour préparer: actuel=" + info.statut);
-        }
-        if (!"En ligne".equals(info.modePaiement)) {
-            throw new IllegalStateException("Paiement obligatoire en ligne pour Domicile");
-        }
-
-        // Encaisse si pas déjà payé (simulation) puis datePaiement
-        if (info.datePaiement == null) {
-            if (!commandeDAO.encaisseCommande(idCommande)) {
-                throw new IllegalStateException("Paiement refusé");
-            }
-            commandeDAO.enregistrerDatePaiement(idCommande);
-        }
-
-        // Sortie de stock FEFO au passage à "Prête"
+        Connection conn = DataSourceProvider.getConnection();
+        int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
+        
         try {
+            // Sauvegarder le niveau d'isolation actuel
+            oldIsolation = conn.getTransactionIsolation();
+            
+            // Isolation SERIALIZABLE pour garantir la cohérence lors de la sortie de stock
+            // qui fait plusieurs lectures puis modifications.
+            // Note: Oracle ne supporte que READ_COMMITTED et SERIALIZABLE, pas REPEATABLE_READ.
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            conn.setAutoCommit(false);
+            
+            CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
+            if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
+            if (!"Domicile".equals(info.modeRecuperation)) {
+                throw new IllegalStateException("La préparation explicite ne concerne que les commandes Domicile");
+            }
+            if (!"En préparation".equals(info.statut)) {
+                throw new IllegalStateException("Statut attendu 'En préparation' pour préparer: actuel=" + info.statut);
+            }
+            if (!"En ligne".equals(info.modePaiement)) {
+                throw new IllegalStateException("Paiement obligatoire en ligne pour Domicile");
+            }
+
+            // Encaisse si pas déjà payé (simulation) puis datePaiement
+            if (info.datePaiement == null) {
+                if (!commandeDAO.encaisseCommande(idCommande)) {
+                    throw new IllegalStateException("Paiement refusé");
+                }
+                commandeDAO.enregistrerDatePaiement(idCommande);
+            }
+
+            // Sortie de stock FEFO au passage à "Prête"
             commandeDAO.enleveDansStock(idCommande);
-        } catch (RuntimeException re) {
-            throw re; // propage l'erreur stock
+            commandeDAO.changeStatutCommande(idCommande, "Prête");
+            
+            conn.commit();
+        } catch (Exception e) {
+            try { conn.rollback(); } catch (SQLException ignore) {}
+            if (e instanceof RuntimeException) throw (RuntimeException) e;
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                conn.setTransactionIsolation(oldIsolation);
+            } catch (SQLException ignore) {}
         }
-        commandeDAO.changeStatutCommande(idCommande, "Prête");
     }
 
     /**
@@ -56,39 +79,57 @@ public class ClotureCommande {
      * Enregistre date de paiement (si boutique) et date de récupération.
      */
     public void cloturerCommande(String idCommande) {
-        if (commandeDAO.estCloturee(idCommande)) {
-            throw new IllegalStateException("Commande déjà clôturée: " + idCommande);
-        }
-        CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
-        if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
-
-        if (!"Prête".equals(info.statut)) {
-            throw new IllegalStateException("Statut doit être 'Prête' pour clôturer. Actuel=" + info.statut);
-        }
-
-        if ("Domicile".equals(info.modeRecuperation) && !"En ligne".equals(info.modePaiement)) {
-            throw new IllegalStateException("Livraison requiert paiement 'En ligne'");
-        }
-
-        // Paiement boutique au moment de la récupération
-        if ("Boutique".equals(info.modeRecuperation) && "En Boutique".equals(info.modePaiement) && info.datePaiement == null) {
-            if (!commandeDAO.encaisseCommande(idCommande)) {
-                throw new IllegalStateException("Paiement boutique refusé");
+        Connection conn = DataSourceProvider.getConnection();
+        int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
+        
+        try {
+            // Sauvegarder le niveau d'isolation actuel
+            oldIsolation = conn.getTransactionIsolation();
+            
+            // Isolation SERIALIZABLE pour garantir la cohérence lors de la sortie de stock
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            conn.setAutoCommit(false);
+            
+            if (commandeDAO.estCloturee(idCommande)) {
+                throw new IllegalStateException("Commande déjà clôturée: " + idCommande);
             }
-            commandeDAO.enregistrerDatePaiement(idCommande);
-        }
+            CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
+            if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
 
-        // Pour Boutique: stock peut ne pas encore être décrémenté (puisque statut déjà 'Prête' sans décrément).
-        if ("Boutique".equals(info.modeRecuperation)) {
-            try {
+            if (!"Prête".equals(info.statut)) {
+                throw new IllegalStateException("Statut doit être 'Prête' pour clôturer. Actuel=" + info.statut);
+            }
+
+            if ("Domicile".equals(info.modeRecuperation) && !"En ligne".equals(info.modePaiement)) {
+                throw new IllegalStateException("Livraison requiert paiement 'En ligne'");
+            }
+
+            // Paiement boutique au moment de la récupération
+            if ("Boutique".equals(info.modeRecuperation) && "En Boutique".equals(info.modePaiement) && info.datePaiement == null) {
+                if (!commandeDAO.encaisseCommande(idCommande)) {
+                    throw new IllegalStateException("Paiement boutique refusé");
+                }
+                commandeDAO.enregistrerDatePaiement(idCommande);
+            }
+
+            // Pour Boutique: stock peut ne pas encore être décrémenté (puisque statut déjà 'Prête' sans décrément).
+            if ("Boutique".equals(info.modeRecuperation)) {
                 commandeDAO.enleveDansStock(idCommande);
-            } catch (RuntimeException re) {
-                throw re;
             }
-        }
 
-        commandeDAO.enregistreDateReceptionCommande(idCommande);
-        commandeDAO.changeStatutCommande(idCommande, "Récupérée/Livrée");
+            commandeDAO.enregistreDateReceptionCommande(idCommande);
+            commandeDAO.changeStatutCommande(idCommande, "Récupérée/Livrée");
+            
+            conn.commit();
+        } catch (Exception e) {
+            try { conn.rollback(); } catch (SQLException ignore) {}
+            if (e instanceof RuntimeException) throw (RuntimeException) e;
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                conn.setTransactionIsolation(oldIsolation);
+            } catch (SQLException ignore) {}
+        }
     }
 
     /**
@@ -97,34 +138,56 @@ public class ClotureCommande {
      * - Boutique: simple changement de statut (stock sortira à la clôture).
      */
     public void marquerPrete(String idCommande) {
-        CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
-        if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
-        if ("Prête".equals(info.statut)) {
-            throw new IllegalStateException("Commande déjà au statut 'Prête'");
-        }
-        if ("Récupérée/Livrée".equals(info.statut)) {
-            throw new IllegalStateException("Commande déjà clôturée");
-        }
+        Connection conn = DataSourceProvider.getConnection();
+        int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
+        
+        try {
+            // Sauvegarder le niveau d'isolation actuel
+            oldIsolation = conn.getTransactionIsolation();
+            
+            // Isolation SERIALIZABLE si on fait une sortie de stock (cas Domicile)
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            conn.setAutoCommit(false);
+            
+            CommandeInfo info = commandeDAO.getCommandeInfo(idCommande);
+            if (info == null) throw new IllegalStateException("Commande introuvable: " + idCommande);
+            if ("Prête".equals(info.statut)) {
+                throw new IllegalStateException("Commande déjà au statut 'Prête'");
+            }
+            if ("Récupérée/Livrée".equals(info.statut)) {
+                throw new IllegalStateException("Commande déjà clôturée");
+            }
 
-        if ("Domicile".equals(info.modeRecuperation)) {
-            if (!"En ligne".equals(info.modePaiement)) {
-                throw new IllegalStateException("Paiement en ligne requis pour livraison domicile");
-            }
-            // Paiement si nécessaire
-            if (info.datePaiement == null) {
-                if (!commandeDAO.encaisseCommande(idCommande)) {
-                    throw new IllegalStateException("Paiement refusé");
+            if ("Domicile".equals(info.modeRecuperation)) {
+                if (!"En ligne".equals(info.modePaiement)) {
+                    throw new IllegalStateException("Paiement en ligne requis pour livraison domicile");
                 }
-                commandeDAO.enregistrerDatePaiement(idCommande);
+                // Paiement si nécessaire
+                if (info.datePaiement == null) {
+                    if (!commandeDAO.encaisseCommande(idCommande)) {
+                        throw new IllegalStateException("Paiement refusé");
+                    }
+                    commandeDAO.enregistrerDatePaiement(idCommande);
+                }
+                // Sortie de stock maintenant
+                commandeDAO.enleveDansStock(idCommande);
+                commandeDAO.changeStatutCommande(idCommande, "Prête");
+            } else if ("Boutique".equals(info.modeRecuperation)) {
+                // Juste passage à Prête (pas de sortie stock maintenant)
+                commandeDAO.changeStatutCommande(idCommande, "Prête");
+            } else {
+                throw new IllegalStateException("Mode de récupération inconnu: " + info.modeRecuperation);
             }
-            // Sortie de stock maintenant
-            commandeDAO.enleveDansStock(idCommande);
-            commandeDAO.changeStatutCommande(idCommande, "Prête");
-        } else if ("Boutique".equals(info.modeRecuperation)) {
-            // Juste passage à Prête (pas de sortie stock maintenant)
-            commandeDAO.changeStatutCommande(idCommande, "Prête");
-        } else {
-            throw new IllegalStateException("Mode de récupération inconnu: " + info.modeRecuperation);
+            
+            conn.commit();
+        } catch (Exception e) {
+            try { conn.rollback(); } catch (SQLException ignore) {}
+            if (e instanceof RuntimeException) throw (RuntimeException) e;
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                conn.setTransactionIsolation(oldIsolation);
+            } catch (SQLException ignore) {}
         }
     }
 

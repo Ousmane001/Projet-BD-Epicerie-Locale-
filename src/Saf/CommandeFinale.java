@@ -49,7 +49,8 @@ public class CommandeFinale {
 ;
     try (Connection conn = dsp.getConnection()) {
 
-        conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+        // Note: Oracle ne supporte que READ_COMMITTED et SERIALIZABLE
+        conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         conn.setAutoCommit(false);
 
         float PoidsTotal = 0;
