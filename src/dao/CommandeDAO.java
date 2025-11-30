@@ -145,8 +145,6 @@ public class CommandeDAO {
 
     public void enleveDansStock(String idCommande){
         // Décrémente le stock (FEFO) pour toutes les lignes de la commande
-        // en fonction du type (vrac ou préconditionné) et des quantités.
-        // Note: l'isolation doit être configurée au niveau du Service appelant.
         try {
             connection.setAutoCommit(false);
 

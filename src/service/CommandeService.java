@@ -10,6 +10,7 @@ import model.ContenantItem;
 import java.sql.*;
 import java.text.Normalizer;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandeService {
@@ -41,6 +42,7 @@ public class CommandeService {
             throw new IllegalArgumentException("La commande est vide");
         }
         
+        
         // Validation: livraison domicile requiert paiement en ligne
         if ("Domicile".equalsIgnoreCase(modeRecuperation) && !"En ligne".equalsIgnoreCase(modePaiement)) {
             throw new IllegalArgumentException("Le paiement en ligne est obligatoire pour une livraison à domicile");
@@ -53,21 +55,15 @@ public class CommandeService {
         int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
         
         try {
-            // Sauvegarder le niveau d'isolation actuel
             oldIsolation = conn.getTransactionIsolation();
-            
-            // Isolation SERIALIZABLE pour garantir la cohérence du stock.
-            // On vérifie le stock disponible, puis on crée la commande.
-            // Sans cette isolation, le stock pourrait changer entre la vérification et la création,
-            // ce qui pourrait créer des commandes avec des produits non disponibles.
-            // Note: Oracle ne supporte que READ_COMMITTED et SERIALIZABLE, pas REPEATABLE_READ.
-
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             conn.setAutoCommit(false);
+            afficherColonnes(conn, "LigneCommandeProduitVrac");
+            afficherTable(conn, "LigneCommandeProduitVrac");
 
             String idCommande = generateId("CM");
-            LocalDate dateEstimeeLivraison = LocalDate.now(); 
-            String typePaysCanon = "International";
+            //LocalDate dateEstimeeLivraison = LocalDate.now(); 
+            
 
             // 1) Créer la commande (statut En préparation)
                 String sqlCommande = "INSERT INTO Commande (idCommande, dateCommande, heureCommande, statutCommande, modePaiement, modeRecuperation, idClient) " +
@@ -79,49 +75,7 @@ public class CommandeService {
                 ps.setString(3, modeRecuperation);
                 ps.setString(4, idClient);
                 ps.executeUpdate();
-            }
-
-             // 3) Si domicile, créer ModeRecuperationDomicile avec infos saisies
-            if ("Domicile".equalsIgnoreCase(modeRecuperation)) {
-                String t = typePaysLivraison == null ? "" : Normalizer.normalize(typePaysLivraison, Normalizer.Form.NFD)
-                        .replaceAll("\\p{M}+", "")
-                        .toLowerCase()
-                        .trim();
-                if (t.contains("metropol") || t.contains("metrop")) {
-                    typePaysCanon = "France Métropolitaine";
-                } else if (t.contains("dom")) {
-                    typePaysCanon = "DOM-TOM";
-                } else if (t.contains("inter")) {
-                    typePaysCanon = "International";
-                } else if (t.contains("france")) {
-                    typePaysCanon = "France Métropolitaine";
-                } else {
-                    // Valeur inattendue: par défaut, on considère International pour ne pas bloquer
-                    typePaysCanon = "International";
-                }
-                // // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
-                // float poidsTotalCommande = poidsTotal;
-                // if (poidsTotalCommande <= 0f) {
-                //     // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
-                //     poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
-                // }
-
-                dateEstimeeLivraison = calculDateEstimeeDeLivraison(distanceLivraison, typePaysCanon, idCommande);
-                // String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
-                //         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-                // System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
-                // try (PreparedStatement ps = conn.prepareStatement(sqlMRD)) {
-                //     ps.setString(1, idMode);
-                //     ps.setString(2, paysLivraison);
-                //     ps.setFloat(3, poidsTotalCommande);
-                //     ps.setDate(4, java.sql.Date.valueOf(dateEstimeeLivraison));
-                //     ps.setFloat(5, distanceLivraison);
-                //     ps.setString(6, typePaysCanon);//probleme
-                //     ps.setString(7, idCommande);
-                //     ps.setString(8, idAdresseDomicile);
-                //     ps.executeUpdate();
-                }
-            
+                }         
 
             float poidsTotal = 0f;
             float capaciteTotaleContenants = 0f; // approximation pour domicile si aucun produit
@@ -132,7 +86,6 @@ public class CommandeService {
                 String idProducteur = it.getIdProducteur();
                 String typeCond = it.getTypeConditionnement();
                 int quantite = it.getQuantite();
-
                 // a) vérifier saisonnalité
                 boolean dispo = produitDAO.estDisponible(idProduit, idProducteur, new java.sql.Date(System.currentTimeMillis()));
                 if (!dispo) throw new SQLException("Produit hors saison: " + idProduit);
@@ -141,8 +94,8 @@ public class CommandeService {
                 String idStock = stockDAO.getIdStock(idProduit, idProducteur, conn);
                 if (idStock == null) throw new SQLException("Stock introuvable pour le produit: " + idProduit);
                 StockService stockService = new StockService(idStock);
-                boolean ok = stockService.stockSuffisantProduit(idProduit, idProducteur, quantite, null, typeCond, conn);
-                if (!ok) throw new SQLException("Stock insuffisant pour le produit: " + idProduit);
+                ArrayList<String> lots_pris = stockService.stockSuffisantProduit(idProduit, idProducteur, quantite, null, typeCond, conn);
+                if (lots_pris.isEmpty()) throw new SQLException("Stock insuffisant pour le produit: " + idProduit);
 
                 // c) prix unitaire
                 Float prixU = produitDAO.getPrixVenteClient(idProduit, idProducteur);
@@ -153,8 +106,9 @@ public class CommandeService {
                 if ("Preconditionne".equalsIgnoreCase(typeCond)) {
                     Float poids = produitDAO.getPoidsSachet(idProduit, idProducteur);
                     if (poids != null) poidsTotal += poids * quantite;
-                } else if ("Vrac".equalsIgnoreCase(typeCond)) {
-                    poidsTotal += quantite; // kg
+                    } else if ("Vrac".equalsIgnoreCase(typeCond)) {
+                        // quantite is stockée comme int (grammes) dans l'UI: convertir en kg
+                        poidsTotal += quantite / 1000.0f; // kg
                 }
 
                 // d) insérer LigneCommande + LigneCommandeProduit + spc vrac/precond
@@ -194,13 +148,16 @@ public class CommandeService {
                     try (PreparedStatement ps = conn.prepareStatement(sqlVrac)) {
                         ps.setString(1, idLigne);
                         ps.setString(2, idCommande);
-                        ps.setDouble(3, quantite);
+                            ps.setDouble(3, quantite); // convertir grammes -> kg
                         ps.executeUpdate();
+                    } catch (SQLException ex) {
+                        System.err.println("[FAILED EXECUTE] SQLVrac: " + sqlVrac + " | params: idLigne=" + idLigne + ", idCommande=" + idCommande);
+                        ex.printStackTrace();
+                        throw ex;
                     }
                 }
 
-                // e) NE PAS décrémenter le stock ici.
-                // Selon la stratégie demandée, la sortie de stock se fait au passage au statut "Prête".
+                // e) NE PAS décrémenter le stock ici, ça se fait au passage à "Prête"
             }
 
             // 2bis) Insérer les lignes de contenant si présentes
@@ -252,62 +209,18 @@ public class CommandeService {
 
             // // 3) Si domicile, créer ModeRecuperationDomicile avec infos saisies
             if ("Domicile".equalsIgnoreCase(modeRecuperation)) {
-                // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
-                float poidsTotalCommande = poidsTotal;
-                if (poidsTotalCommande <= 0f) {
-                    // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
-                    poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
-                }
+                // // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
+                // float poidsTotalCommande = poidsTotal;
+                // if (poidsTotalCommande <= 0f) {
+                //     // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
+                //     poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
+                
 
                  String idMode = generateId("MR");
                 // Utiliser les paramètres fournis
                 String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
-                // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
-
-                String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-                System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
-                try (PreparedStatement ps = conn.prepareStatement(sqlMRD)) {
-                    ps.setString(1, idMode);
-                    ps.setString(2, paysLivraison);
-                    ps.setFloat(3, poidsTotalCommande);
-                    ps.setFloat(4, distanceLivraison);
-                    ps.setDate(5, java.sql.Date.valueOf(dateEstimeeLivraison));
-                    ps.setString(6, typePaysCanon);
-                    ps.setString(7, idCommande);
-                    ps.setString(8, idAdresseDomicile);
-                    ps.executeUpdate();
-                }
-            }
-            //     String idMode = generateId("MR");
-            //     // Utiliser les paramètres fournis
-            //     String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
             //     // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
-            //     String typePaysCanon;
-            //     String t = typePaysLivraison == null ? "" : Normalizer.normalize(typePaysLivraison, Normalizer.Form.NFD)
-            //             .replaceAll("\\p{M}+", "")
-            //             .toLowerCase()
-            //             .trim();
-            //     if (t.contains("metropol") || t.contains("metrop")) {
-            //         typePaysCanon = "France Métropolitaine";
-            //     } else if (t.contains("dom")) {
-            //         typePaysCanon = "DOM-TOM";
-            //     } else if (t.contains("inter")) {
-            //         typePaysCanon = "International";
-            //     } else if (t.contains("france")) {
-            //         typePaysCanon = "France Métropolitaine";
-            //     } else {
-            //         // Valeur inattendue: par défaut, on considère International pour ne pas bloquer
-            //         typePaysCanon = "International";
-            //     }
-            //     // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
-            //     float poidsTotalCommande = poidsTotal;
-            //     if (poidsTotalCommande <= 0f) {
-            //         // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
-            //         poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
-            //     }
 
-            //     LocalDate dateEstimeeLivraison = calculDateEstimeeDeLivraison(distanceLivraison, typePaysCanon, idCommande);
             //     String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
             //             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             //     System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
@@ -323,14 +236,59 @@ public class CommandeService {
             //         ps.executeUpdate();
             //     }
             // }
+                // String idMode = generateId("MR");
+                // // Utiliser les paramètres fournis
+                // String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
+                // // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
+                String typePaysCanon;
+                String t = typePaysLivraison == null ? "" : Normalizer.normalize(typePaysLivraison, Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}+", "")
+                        .toLowerCase()
+                        .trim();
+                if (t.contains("metropol") || t.contains("metrop")) {
+                    typePaysCanon = "France Métropolitaine";
+                } else if (t.contains("dom")) {
+                    typePaysCanon = "DOM-TOM";
+                } else if (t.contains("inter")) {
+                    typePaysCanon = "International";
+                } else if (t.contains("france")) {
+                    typePaysCanon = "France Métropolitaine";
+                } else {
+                    typePaysCanon = "International";
+                }
+                float poidsTotalCommande = poidsTotal;
+                if (poidsTotalCommande <= 0f) {
+                    poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
+                }
 
-            // 4) Si mode récupération Boutique: pas de statut "En préparation" selon votre règle,
+                LocalDate dateEstimeeLivraison = calculDateEstimeeDeLivraison(distanceLivraison, typePaysCanon, idCommande);
+                String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
+                try (PreparedStatement ps = conn.prepareStatement(sqlMRD)) {
+                    ps.setString(1, idMode);
+                    ps.setString(2, paysLivraison);
+                    ps.setFloat(3, poidsTotalCommande);
+                    ps.setDate(4, java.sql.Date.valueOf(dateEstimeeLivraison));
+                    ps.setFloat(5, distanceLivraison);
+                    ps.setString(6, typePaysCanon);//probleme
+                    ps.setString(7, idCommande);
+                    ps.setString(8, idAdresseDomicile);
+                    ps.executeUpdate();
+                }
+            }
+            
+
+            
+
+            // 4) Si mode récupération Boutique: pas de statut "En préparation" selon vntre règle,
             // on passe immédiatement en "Prête" pour déclencher la sortie de stock à la clôture.
             if ("Boutique".equalsIgnoreCase(modeRecuperation)) {
                 String sqlStatut = "UPDATE Commande SET statutCommande = 'Prête' WHERE idCommande = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sqlStatut)) {
                     ps.setString(1, idCommande);
                     ps.executeUpdate();
+                    
                 }
             }
 
@@ -340,15 +298,21 @@ public class CommandeService {
             }
 
             conn.commit();
+            if ("Boutique".equalsIgnoreCase(modeRecuperation)){
+                ClotureCommande clotureCommande = new ClotureCommande();
+                clotureCommande.cloturerCommande(idCommande);
+                conn.commit();
+            }
             return idCommande;
         }
+    
          catch (SQLException e) {
             try { conn.rollback(); } catch (SQLException ignore) {}
             throw e;
         } finally {
-            try {
-                conn.setTransactionIsolation(oldIsolation);
-            } catch (SQLException ignore) {}
+            try { 
+                if ("Boutique".equalsIgnoreCase(modeRecuperation)){}
+                conn.setAutoCommit(true); } catch (SQLException ignore) {}
         }
     }
 
@@ -388,5 +352,40 @@ public class CommandeService {
         
         //return LocalDate.now();
                 
+}
+
+public static void afficherColonnes(Connection conn, String nomTable) throws SQLException {
+    String sql = "SELECT column_name FROM all_tab_columns WHERE LOWER(table_name) = LOWER(?)";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setString(1, nomTable);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            System.out.println("=== Colonnes de la table " + nomTable + " ===");
+            while (rs.next()) {
+                System.out.println(rs.getString("column_name"));
+            }
+        }
+    }
+}
+
+public static void afficherTable(Connection conn, String nomTable) throws SQLException {
+    String sql = "SELECT * FROM " + nomTable;
+
+    try (Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+
+        ResultSetMetaData meta = rs.getMetaData();
+        int nbCol = meta.getColumnCount();
+
+        System.out.println("=== Contenu de " + nomTable + " ===");
+
+        while (rs.next()) {
+            for (int i = 1; i <= nbCol; i++) {
+                System.out.print(meta.getColumnName(i) + "=" + rs.getString(i) + "  ");
+            }
+            System.out.println();
+        }
+    }
 }
 }

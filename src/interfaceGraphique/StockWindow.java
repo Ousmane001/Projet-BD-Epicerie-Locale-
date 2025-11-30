@@ -197,7 +197,7 @@ public class StockWindow extends JFrame {
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erreur lors du chargement du stock:\n" + e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            //e.printStackTrace();
         } finally {
             DataSourceProvider.closeConnection(conn);
         }
@@ -254,7 +254,7 @@ public class StockWindow extends JFrame {
 
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Erreur: " + ex.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
+            //ex.printStackTrace();
         } finally {
             DataSourceProvider.closeConnection(conn);
         }

@@ -27,15 +27,12 @@ public class DataSourceProvider {
         if (connection == null) {
             connection = getValidConnection();
         } else {
-            // Vérifier si la connexion est toujours valide
             try {
                 if (connection.isClosed() || !connection.isValid(2)) {
-                    // Connexion invalide, en créer une nouvelle
                     try { connection.close(); } catch (SQLException ignore) {}
                     connection = getValidConnection();
                 }
             } catch (SQLException e) {
-                // Erreur lors de la vérification, recréer la connexion
                 try { connection.close(); } catch (SQLException ignore) {}
                 connection = getValidConnection();
             }

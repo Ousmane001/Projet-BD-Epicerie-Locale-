@@ -107,7 +107,6 @@ public class ProduitDAO {
     }
 
     // Récupère le premier idConditionnement disponible pour un produit donné
-    // Note: il peut y avoir plusieurs conditionnements (vrac, préconditionné), cette méthode retourne le premier trouvé.
     public String getIdConditionnement(String idProduit, String idProducteur) throws SQLException {
         String sql = "SELECT idConditionnement FROM Conditionnement WHERE idProduit = ? AND idProducteur = ? FETCH FIRST 1 ROWS ONLY";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

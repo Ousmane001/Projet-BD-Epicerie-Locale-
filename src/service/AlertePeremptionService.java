@@ -25,12 +25,7 @@ public class AlertePeremptionService {
         int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
         
         try {
-            // Sauvegarder le niveau d'isolation actuel
             oldIsolation = conn.getTransactionIsolation();
-            
-            // Isolation SERIALIZABLE pour garantir que le prix lu reste cohérent
-            // jusqu'à la mise à jour (lecture puis modification).
-            // Note: Oracle ne supporte que READ_COMMITTED et SERIALIZABLE, pas REPEATABLE_READ.
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             
             condDAO.appliquerReduction(alerte.getIdProduit(), alerte.getIdProducteur());

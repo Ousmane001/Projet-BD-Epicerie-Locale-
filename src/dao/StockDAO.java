@@ -30,7 +30,7 @@ public class StockDAO {
     }
 
     public Integer getQuantitePreconditionneLot(String idLot, Connection conn) {
-        String sql = "SELECT quantiteDisponiblePreconditionne FROM LotPreconditionne WHERE idLot = ?";
+        String sql = "SELECT quantiteDisponiblePreconditionne FROM LotPreconditionne WHERE idLot = ? FOR UPDATE";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, idLot);
@@ -43,7 +43,7 @@ public class StockDAO {
     }
 
     public Double getQuantiteVracLot(String idLot, Connection conn) {
-        String sql = "SELECT quantiteDisponibleVrac FROM LotVrac WHERE idLot = ?";
+        String sql = "SELECT quantiteDisponibleVrac FROM LotVrac WHERE idLot = ? FOR UPDATE";
         try {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, idLot);

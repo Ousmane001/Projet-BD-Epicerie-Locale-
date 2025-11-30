@@ -1,6 +1,4 @@
-1- payement carte non intégré a la base : 
-2_ delais de disponiblite des produits sur commande rare
+2em : pas d'affichage de la prochaine dispo
+3em : pas d'affichage de la date estime de livraison, ni du frais de livraison
 
-1er : table commande produit defecteuse car absence de idcommande
-
-2em : 
+Mise `a jour de prix pendant qu’une commande est en cours

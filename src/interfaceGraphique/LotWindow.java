@@ -121,7 +121,7 @@ public class LotWindow extends JFrame {
             if (comboProduits.getItemCount() > 0) comboProduits.setSelectedIndex(0);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erreur lors du chargement des produits: " + e.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 
@@ -160,7 +160,7 @@ public class LotWindow extends JFrame {
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Erreur: " + ex.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
+            //ex.printStackTrace();
         } finally {
             DataSourceProvider.closeConnection(conn);
         }

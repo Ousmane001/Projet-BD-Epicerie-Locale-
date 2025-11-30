@@ -29,12 +29,7 @@ public class ClotureCommande {
         int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
         
         try {
-            // Sauvegarder le niveau d'isolation actuel
             oldIsolation = conn.getTransactionIsolation();
-            
-            // Isolation SERIALIZABLE pour garantir la cohérence lors de la sortie de stock
-            // qui fait plusieurs lectures puis modifications.
-            // Note: Oracle ne supporte que READ_COMMITTED et SERIALIZABLE, pas REPEATABLE_READ.
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             conn.setAutoCommit(false);
             
@@ -83,10 +78,7 @@ public class ClotureCommande {
         int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
         
         try {
-            // Sauvegarder le niveau d'isolation actuel
             oldIsolation = conn.getTransactionIsolation();
-            
-            // Isolation SERIALIZABLE pour garantir la cohérence lors de la sortie de stock
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             conn.setAutoCommit(false);
             
@@ -142,10 +134,7 @@ public class ClotureCommande {
         int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
         
         try {
-            // Sauvegarder le niveau d'isolation actuel
             oldIsolation = conn.getTransactionIsolation();
-            
-            // Isolation SERIALIZABLE si on fait une sortie de stock (cas Domicile)
             conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             conn.setAutoCommit(false);
             

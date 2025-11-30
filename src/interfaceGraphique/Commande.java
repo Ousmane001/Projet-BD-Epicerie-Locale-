@@ -110,7 +110,7 @@ public class Commande extends JFrame {
             txtAdresse.setVisible(isLivraison);
 
             if (isLivraison) {
-                new LivraisonWindow();  // 👉 OUVERTURE DIRECTE
+                new LivraisonWindow();  // OUVERTURE DIRECTE
                 dispose();
             }
         });

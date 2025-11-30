@@ -19,7 +19,6 @@ public class ConditionnementDAO {
         if (conn == null)
             throw new SQLException("Connexion null dans ConditionnementDAO");
 
-        // Note: l'isolation doit être configurée au niveau du Service appelant.
         conn.setAutoCommit(false);
 
         double prixActuel;
