@@ -176,7 +176,7 @@ CREATE TABLE Lot (
 
 CREATE TABLE LotVrac (
     idLot VARCHAR(10) PRIMARY KEY,
-    quantiteDisponibleVrac FLOAT NOT NULL CHECK (quantiteDisponibleVrac > 0),
+    quantiteDisponibleVrac FLOAT NOT NULL CHECK (quantiteDisponibleVrac >= 0),
     FOREIGN KEY (idLot) REFERENCES Lot(idLot) ON DELETE CASCADE
 );
 
@@ -184,7 +184,7 @@ CREATE TABLE LotVrac (
 
 CREATE TABLE LotPreconditionne (
     idLot VARCHAR(10) PRIMARY KEY,
-    quantiteDisponiblePreconditionne INTEGER NOT NULL CHECK (quantiteDisponiblePreconditionne > 0),
+    quantiteDisponiblePreconditionne INTEGER NOT NULL CHECK (quantiteDisponiblePreconditionne >= 0),
     FOREIGN KEY (idLot) REFERENCES Lot(idLot) ON DELETE CASCADE
 );
 

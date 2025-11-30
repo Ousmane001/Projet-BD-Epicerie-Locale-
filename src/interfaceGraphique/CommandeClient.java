@@ -4,6 +4,7 @@ import dao.ContenantDAO;
 import dao.ProduitDAO;
 import model.CommandeItem;
 import dao.AdresseDAO;
+import dao.ConditionnementDAO;
 import model.Adresse;
 import model.Contenant;
 import model.ContenantItem;
@@ -16,6 +17,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
 
 public class CommandeClient extends JFrame {
     private JComboBox<ProduitDisponible> comboProduit;
@@ -103,7 +105,17 @@ public class CommandeClient extends JFrame {
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
         JButton btnAjouter = new JButton("Ajouter au panier");
         styleButton(btnAjouter, new Color(34, 139, 34), Color.WHITE);
-        btnAjouter.addActionListener(e -> ajouterAuPanier());
+        btnAjouter.addActionListener(e -> {
+            try {
+                ajouterAuPanier();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this,
+                    "Erreur lors de l'ajout du produit au panier : " + ex.getMessage(),
+                    "Erreur",
+                    JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            }
+        });
         panel.add(btnAjouter, gbc);
         
         // Séparateur
@@ -230,7 +242,7 @@ public class CommandeClient extends JFrame {
         // Optionnel: afficher info produit sélectionné
     }
 
-    private void ajouterAuPanier() {
+    private void ajouterAuPanier() throws SQLException{
         ProduitDisponible produit = (ProduitDisponible) comboProduit.getSelectedItem();
         if (produit == null) return;
 
@@ -250,24 +262,75 @@ public class CommandeClient extends JFrame {
         String typeConditionnement;
         int quantite = 0;
         
+        // if (choix == 0) {
+        //     // Préconditionné
+        //     typeConditionnement = "Preconditionne";
+        //     String qteStr = JOptionPane.showInputDialog(this,
+        //         "Quantité (nombre de sachets) :",
+        //         "Quantité",
+        //         JOptionPane.QUESTION_MESSAGE);
+        //     if (qteStr == null || qteStr.trim().isEmpty()) return;
+        //     try {
+        //         quantite = Integer.parseInt(qteStr.trim());
+        //         if (quantite <= 0) {
+        //             JOptionPane.showMessageDialog(this, "Quantité invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
+        //             return;
+        //         }
+        //     } catch (NumberFormatException e) {
+        //         JOptionPane.showMessageDialog(this, "Quantité invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
+        //         return;
+        //     }
         if (choix == 0) {
-            // Préconditionné
             typeConditionnement = "Preconditionne";
+            // 2️⃣ Récupérer les poids disponibles depuis la DB
+            ProduitDAO produitDAO = new ProduitDAO();
+            ConditionnementDAO conditionnementDAO = new ConditionnementDAO();
+            String idConditionnement = produitDAO.getIdConditionnement(produit.getIdProduit(), produit.getIdProducteur());
+            List<Float> poidsDisponibles = conditionnementDAO.getPoidsSachets(idConditionnement); // List<Float>
+
+            if (poidsDisponibles.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Aucun poids disponible pour ce produit.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 3️⃣ Proposer une liste de choix
+            String[] optionsPoids = poidsDisponibles.stream()
+                                .map(p -> p + " kg")
+                                .toArray(String[]::new);
+
+            int choixPoids = JOptionPane.showOptionDialog(this,
+                    "Choisissez le poids du sachet :",
+                    "Poids du sachet",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    optionsPoids,
+                    optionsPoids[0]);
+
+            if (choixPoids < 0) return; // annulation
+
+            float poidsSachet = poidsDisponibles.get(choixPoids);
+
+            // 1️⃣ Choix de la quantité
             String qteStr = JOptionPane.showInputDialog(this,
-                "Quantité (nombre de sachets) :",
-                "Quantité",
-                JOptionPane.QUESTION_MESSAGE);
+                    "Quantité (nombre de sachets) :",
+                    "Quantité",
+                    JOptionPane.QUESTION_MESSAGE);
             if (qteStr == null || qteStr.trim().isEmpty()) return;
+
+            //int quantite;
             try {
                 quantite = Integer.parseInt(qteStr.trim());
-                if (quantite <= 0) {
-                    JOptionPane.showMessageDialog(this, "Quantité invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+                if (quantite <= 0) throw new NumberFormatException();
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Quantité invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+            
+            // it.setPoidsSachet(poidsSachet);
+            // it.setQuantite(quantite);
+        
         } else {
             // Vrac
             typeConditionnement = "Vrac";

@@ -498,7 +498,7 @@ public class CommandeDAO {
      * @param idCommande L'identifiant de la commande
      * @return Le délai maximal en jours (0 si aucun délai ou erreur)
      */
-    private int getDelaiMaxDisponibilite(String idCommande) {
+    public int getDelaiMaxDisponibilite(String idCommande) {
         String sql = "SELECT MAX(p.delaiDisponibilite) AS delaiMax " +
                      "FROM LigneCommande lc " +
                      "JOIN LigneCommandeProduit lcp ON lc.idLigneCommande = lcp.idLigneCommande " +

@@ -483,3 +483,5 @@ UNION ALL SELECT 'Contenant', COUNT(*) FROM Contenant
 UNION ALL SELECT 'Commande', COUNT(*) FROM Commande
 UNION ALL SELECT 'LigneCommande', COUNT(*) FROM LigneCommande
 UNION ALL SELECT 'Perte', COUNT(*) FROM Perte;
+
+commit;
