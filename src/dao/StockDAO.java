@@ -5,7 +5,7 @@ import java.sql.*;
 public class StockDAO {
 
     public ResultSet getLotsOrdonnesByIdStock(String idStock, Connection conn) {
-        String query = "SELECT l.idLot, l.dateLimite FROM Lot l WHERE l.idStock = ? ORDER BY l.dateLimite ASC";
+        String query = "SELECT l.idLot, l.dateLimite FROM Lot l WHERE l.idStock = ? ORDER BY l.dateLimite ASC FOR UPDATE";
         try {
             PreparedStatement pstmt = conn.prepareStatement(query);
             pstmt.setString(1, idStock);

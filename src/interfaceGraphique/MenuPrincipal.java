@@ -41,7 +41,7 @@ public class MenuPrincipal extends JFrame {
         headerPanel.add(sousTitre);
 
         // Panel central avec les boutons
-        JPanel centerPanel = new JPanel(new GridLayout(5, 1, 15, 15));
+        JPanel centerPanel = new JPanel(new GridLayout(6, 1, 15, 15));
         centerPanel.setBackground(new Color(240, 245, 250));
         centerPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
@@ -54,9 +54,14 @@ public class MenuPrincipal extends JFrame {
         
         JButton btnAlertes = creerBoutonMenu(" Alertes de Péremption", 
             "Voir les produits proches de la péremption", new Color(255, 140, 0));
+
+        JButton btnStock = creerBoutonMenu(" Consulter le Stock",
+            "Voir l'état du stock par produit", new Color(70, 130, 180));
         
         JButton btnCloture = creerBoutonMenu(" Clôturer une Commande", 
             "Finaliser le retrait ou la livraison", new Color(138, 43, 226));
+
+            
         
         JButton btnQuitter = creerBoutonMenu(" Quitter", 
             "Fermer l'application", new Color(220, 80, 60));
@@ -74,6 +79,11 @@ public class MenuPrincipal extends JFrame {
 
         btnAlertes.addActionListener(e -> {
             new AlertesPeremptionWindow();
+            dispose();
+        });
+
+        btnStock.addActionListener(e -> {
+            new StockWindow();
             dispose();
         });
 
@@ -98,6 +108,7 @@ public class MenuPrincipal extends JFrame {
 
         // Ajouter les boutons au panel central
         centerPanel.add(btnCatalogue);
+        centerPanel.add(btnStock);
         centerPanel.add(btnCommander);
         centerPanel.add(btnAlertes);
         centerPanel.add(btnCloture);

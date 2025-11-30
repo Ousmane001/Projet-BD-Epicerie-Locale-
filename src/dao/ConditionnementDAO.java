@@ -6,12 +6,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConditionnementDAO {
+    private final Connection conn = DataSourceProvider.getConnection();
 
     public void appliquerReduction(String idProduit, String idProducteur) throws SQLException {
 
-        Connection conn = DataSourceProvider.getConnection();
+        
 
         if (conn == null)
             throw new SQLException("Connexion null dans ConditionnementDAO");
@@ -68,6 +71,21 @@ public class ConditionnementDAO {
         } finally {
             conn.setAutoCommit(oldAutoCommit);
         }
+    }
+
+    // Récupère la liste des poids disponibles pour un conditionnement préconditionné
+    public List<Float> getPoidsSachets(String idConditionnement) throws SQLException {
+        List<Float> poidsSachets = new ArrayList<>();
+        String sql = "SELECT poidsSachet FROM ConditionnementPreconditionne WHERE idConditionnement = ? ORDER BY poidsSachet ASC";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idConditionnement);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    poidsSachets.add(rs.getFloat("poidsSachet"));
+                }
+            }
+        }
+        return poidsSachets;
     }
 
 }

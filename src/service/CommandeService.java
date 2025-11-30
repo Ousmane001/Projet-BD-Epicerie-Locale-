@@ -9,6 +9,7 @@ import model.ContenantItem;
 
 import java.sql.*;
 import java.text.Normalizer;
+import java.time.LocalDate;
 import java.util.List;
 
 public class CommandeService {
@@ -50,9 +51,12 @@ public class CommandeService {
 
         Connection conn = DataSourceProvider.getValidConnection();
         try {
+            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
             conn.setAutoCommit(false);
 
             String idCommande = generateId("CM");
+            LocalDate dateEstimeeLivraison = LocalDate.now(); 
+            String typePaysCanon = "International";
 
             // 1) Créer la commande (statut En préparation)
                 String sqlCommande = "INSERT INTO Commande (idCommande, dateCommande, heureCommande, statutCommande, modePaiement, modeRecuperation, idClient) " +
@@ -65,6 +69,48 @@ public class CommandeService {
                 ps.setString(4, idClient);
                 ps.executeUpdate();
             }
+
+             // 3) Si domicile, créer ModeRecuperationDomicile avec infos saisies
+            if ("Domicile".equalsIgnoreCase(modeRecuperation)) {
+                String t = typePaysLivraison == null ? "" : Normalizer.normalize(typePaysLivraison, Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}+", "")
+                        .toLowerCase()
+                        .trim();
+                if (t.contains("metropol") || t.contains("metrop")) {
+                    typePaysCanon = "France Métropolitaine";
+                } else if (t.contains("dom")) {
+                    typePaysCanon = "DOM-TOM";
+                } else if (t.contains("inter")) {
+                    typePaysCanon = "International";
+                } else if (t.contains("france")) {
+                    typePaysCanon = "France Métropolitaine";
+                } else {
+                    // Valeur inattendue: par défaut, on considère International pour ne pas bloquer
+                    typePaysCanon = "International";
+                }
+                // // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
+                // float poidsTotalCommande = poidsTotal;
+                // if (poidsTotalCommande <= 0f) {
+                //     // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
+                //     poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
+                // }
+
+                dateEstimeeLivraison = calculDateEstimeeDeLivraison(distanceLivraison, typePaysCanon, idCommande);
+                // String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
+                //         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                // System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
+                // try (PreparedStatement ps = conn.prepareStatement(sqlMRD)) {
+                //     ps.setString(1, idMode);
+                //     ps.setString(2, paysLivraison);
+                //     ps.setFloat(3, poidsTotalCommande);
+                //     ps.setDate(4, java.sql.Date.valueOf(dateEstimeeLivraison));
+                //     ps.setFloat(5, distanceLivraison);
+                //     ps.setString(6, typePaysCanon);//probleme
+                //     ps.setString(7, idCommande);
+                //     ps.setString(8, idAdresseDomicile);
+                //     ps.executeUpdate();
+                }
+            
 
             float poidsTotal = 0f;
             float capaciteTotaleContenants = 0f; // approximation pour domicile si aucun produit
@@ -193,49 +239,79 @@ public class CommandeService {
                 }
             }
 
-            // 3) Si domicile, créer ModeRecuperationDomicile avec infos saisies
+            // // 3) Si domicile, créer ModeRecuperationDomicile avec infos saisies
             if ("Domicile".equalsIgnoreCase(modeRecuperation)) {
-                String idMode = generateId("MR");
-                // Utiliser les paramètres fournis
-                String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
-                // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
-                String typePaysCanon;
-                String t = typePaysLivraison == null ? "" : Normalizer.normalize(typePaysLivraison, Normalizer.Form.NFD)
-                        .replaceAll("\\p{M}+", "")
-                        .toLowerCase()
-                        .trim();
-                if (t.contains("metropol") || t.contains("metrop")) {
-                    typePaysCanon = "France Métropolitaine";
-                } else if (t.contains("dom")) {
-                    typePaysCanon = "DOM-TOM";
-                } else if (t.contains("inter")) {
-                    typePaysCanon = "International";
-                } else if (t.contains("france")) {
-                    typePaysCanon = "France Métropolitaine";
-                } else {
-                    // Valeur inattendue: par défaut, on considère International pour ne pas bloquer
-                    typePaysCanon = "International";
-                }
                 // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
                 float poidsTotalCommande = poidsTotal;
                 if (poidsTotalCommande <= 0f) {
                     // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
                     poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
                 }
+
+                 String idMode = generateId("MR");
+                // Utiliser les paramètres fournis
+                String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
+                // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
+
                 String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
-                        "VALUES (?, ?, ?, ?, TRUNC(SYSDATE)+2, ?, ?, ?)";
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
                 try (PreparedStatement ps = conn.prepareStatement(sqlMRD)) {
                     ps.setString(1, idMode);
                     ps.setString(2, paysLivraison);
                     ps.setFloat(3, poidsTotalCommande);
-                    ps.setFloat(4, distanceLivraison);
-                    ps.setString(5, typePaysCanon);
-                    ps.setString(6, idCommande);
-                    ps.setString(7, idAdresseDomicile);
+                    ps.setDate(4, java.sql.Date.valueOf(dateEstimeeLivraison));
+                    ps.setFloat(5, distanceLivraison);
+                    ps.setString(6, typePaysCanon);//probleme
+                    ps.setString(7, idCommande);
+                    ps.setString(8, idAdresseDomicile);
                     ps.executeUpdate();
                 }
             }
+            //     String idMode = generateId("MR");
+            //     // Utiliser les paramètres fournis
+            //     String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
+            //     // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
+            //     String typePaysCanon;
+            //     String t = typePaysLivraison == null ? "" : Normalizer.normalize(typePaysLivraison, Normalizer.Form.NFD)
+            //             .replaceAll("\\p{M}+", "")
+            //             .toLowerCase()
+            //             .trim();
+            //     if (t.contains("metropol") || t.contains("metrop")) {
+            //         typePaysCanon = "France Métropolitaine";
+            //     } else if (t.contains("dom")) {
+            //         typePaysCanon = "DOM-TOM";
+            //     } else if (t.contains("inter")) {
+            //         typePaysCanon = "International";
+            //     } else if (t.contains("france")) {
+            //         typePaysCanon = "France Métropolitaine";
+            //     } else {
+            //         // Valeur inattendue: par défaut, on considère International pour ne pas bloquer
+            //         typePaysCanon = "International";
+            //     }
+            //     // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
+            //     float poidsTotalCommande = poidsTotal;
+            //     if (poidsTotalCommande <= 0f) {
+            //         // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
+            //         poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
+            //     }
+
+            //     LocalDate dateEstimeeLivraison = calculDateEstimeeDeLivraison(distanceLivraison, typePaysCanon, idCommande);
+            //     String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
+            //             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            //     System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
+            //     try (PreparedStatement ps = conn.prepareStatement(sqlMRD)) {
+            //         ps.setString(1, idMode);
+            //         ps.setString(2, paysLivraison);
+            //         ps.setFloat(3, poidsTotalCommande);
+            //         ps.setDate(4, java.sql.Date.valueOf(dateEstimeeLivraison));
+            //         ps.setFloat(5, distanceLivraison);
+            //         ps.setString(6, typePaysCanon);//probleme
+            //         ps.setString(7, idCommande);
+            //         ps.setString(8, idAdresseDomicile);
+            //         ps.executeUpdate();
+            //     }
+            // }
 
             // 4) Si mode récupération Boutique: pas de statut "En préparation" selon votre règle,
             // on passe immédiatement en "Prête" pour déclencher la sortie de stock à la clôture.
@@ -254,11 +330,50 @@ public class CommandeService {
 
             conn.commit();
             return idCommande;
-        } catch (SQLException e) {
+        }
+         catch (SQLException e) {
             try { conn.rollback(); } catch (SQLException ignore) {}
             throw e;
         } finally {
             try { conn.setAutoCommit(true); } catch (SQLException ignore) {}
         }
     }
+
+
+
+    public LocalDate calculDateEstimeeDeLivraison(float distanceAdresseBoutique, String typePays, String idCommande){
+                    
+                    // Calcul des jours de base selon la zone
+                    int joursBase = 2; // France Métropolitaine par défaut
+                    if ("DOM-TOM".equals(typePays)) {
+                        joursBase = 5;
+                    } else if ("International".equals(typePays)) {
+                        joursBase = 7;
+                    }
+                    
+                    // Calcul des jours supplémentaires selon la distance
+                    int joursSupplementaires = 0;
+                    if (distanceAdresseBoutique > 2000) {
+                        joursSupplementaires = 3;
+                    } else if (distanceAdresseBoutique > 300) {
+                        joursSupplementaires = 2;
+                    } else if (distanceAdresseBoutique > 50) {
+                        joursSupplementaires = 1;
+                    }
+                    
+                    // Récupération du délai maximal de disponibilité des produits de la commande
+                    int delaiMaxDisponibilite = commandeDAO.getDelaiMaxDisponibilite(idCommande);
+                    
+                    // Calcul de la date estimée avec tous les délais
+                    int totalJours = joursBase + joursSupplementaires + delaiMaxDisponibilite;
+                    LocalDate dateEstimee = LocalDate.now().plusDays(totalJours);
+                    
+                    // si besoin, on decommente cette ligne de mis à jour de la date estimée dans la base de données
+                    //updateDateEstimeeLivraison(idModeDeRecuperationDomicile, dateEstimee);
+                    
+                    return dateEstimee;
+        
+        //return LocalDate.now();
+                
+}
 }
