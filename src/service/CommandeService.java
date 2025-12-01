@@ -57,10 +57,8 @@ public class CommandeService {
         
         try {
 
-            String idCommande = generateId("CM");
-            //LocalDate dateEstimeeLivraison = LocalDate.now(); 
-            afficherColonnes(conn, idCommande);
-            afficherTable(conn, "LigneCommandeProduitVrac");
+            String idCommande = generateId("CM"); 
+            
 
             // 1) Créer la commande (statut En préparation)
                 String sqlCommande = "INSERT INTO Commande (idCommande, dateCommande, heureCommande, statutCommande, modePaiement, modeRecuperation, idClient) " +
