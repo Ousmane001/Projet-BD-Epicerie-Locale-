@@ -3,6 +3,7 @@ package model;
 import java.time.LocalDate;
 
 public class AlertePeremption {
+
     private String idLot;
     private String idProduit;
     private String idProducteur;
@@ -12,10 +13,24 @@ public class AlertePeremption {
     private LocalDate dateLimite;
     private String nomProduit;
 
+    // ==== Champs perte ====
+    private String idPerte;
+    private LocalDate datePerte;
+    private String typeAlerte; // "PEREMPTION" ou "PERTE"
 
     public AlertePeremption() {}
 
-    // Getters + Setters
+    // ==== Getters / Setters ====
+
+    public String getTypeAlerte() { return typeAlerte; }
+    public void setTypeAlerte(String typeAlerte) { this.typeAlerte = typeAlerte; }
+
+    public String getIdPerte() { return idPerte; }
+    public void setIdPerte(String idPerte) { this.idPerte = idPerte; }
+
+    public LocalDate getDatePerte() { return datePerte; }
+    public void setDatePerte(LocalDate datePerte) { this.datePerte = datePerte; }
+
     public String getIdLot() { return idLot; }
     public void setIdLot(String idLot) { this.idLot = idLot; }
 
@@ -29,16 +44,13 @@ public class AlertePeremption {
     public void setJoursRestants(int joursRestants) { this.joursRestants = joursRestants; }
 
     public double getReductionProposee() { return reductionProposee; }
+    public void setReductionProposee(double r) { this.reductionProposee = r; }
+
     public LocalDate getDateAlerte() { return dateAlerte; }
 
-    public LocalDate getDateLimite(){
-        return dateLimite;
-    };
-    public void setDateLimite(LocalDate d) {
-        this.dateLimite = d;
-    }
+    public LocalDate getDateLimite() { return dateLimite; }
+    public void setDateLimite(LocalDate d) { this.dateLimite = d; }
 
     public String getNomProduit() { return nomProduit; }
     public void setNomProduit(String nomProduit) { this.nomProduit = nomProduit; }
-
 }

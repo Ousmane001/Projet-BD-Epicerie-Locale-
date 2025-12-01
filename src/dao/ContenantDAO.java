@@ -36,4 +36,27 @@ public class ContenantDAO {
         
         return contenants;
     }
+
+    public boolean stocksuffisantContenant(String refContenant, double quantiteDemande, Connection conn) {
+    String sql = "SELECT stockContenant FROM Contenant WHERE refContenant = ? FOR UPDATE";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setString(1, refContenant);
+
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                double stock = rs.getDouble("stockContenant");
+                return stock >= quantiteDemande;
+            } else {
+                // Le contenant n’existe même pas ? Bah là c’est la merde → insuffisant par défaut
+                return false;
+            }
+        }
+
+    } catch (Exception e) {
+        // On va pas crasher toute l’app juste parce qu’une requête a décidé de faire sa diva
+        return false;
+    }
+}
+
 }

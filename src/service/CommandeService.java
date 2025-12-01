@@ -52,17 +52,12 @@ public class CommandeService {
         }
 
         Connection conn = DataSourceProvider.getValidConnection();
-        int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
+        conn.setAutoCommit(false);
+        conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         
         try {
-            oldIsolation = conn.getTransactionIsolation();
-            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            conn.setAutoCommit(false);
-            afficherColonnes(conn, "LigneCommandeProduitVrac");
-            afficherTable(conn, "LigneCommandeProduitVrac");
 
-            String idCommande = generateId("CM");
-            //LocalDate dateEstimeeLivraison = LocalDate.now(); 
+            String idCommande = generateId("CM"); 
             
 
             // 1) Créer la commande (statut En préparation)
@@ -85,7 +80,7 @@ public class CommandeService {
                 String idProduit = it.getIdProduit();
                 String idProducteur = it.getIdProducteur();
                 String typeCond = it.getTypeConditionnement();
-                int quantite = it.getQuantite();
+                double quantite = it.getQuantite();
                 // a) vérifier saisonnalité
                 boolean dispo = produitDAO.estDisponible(idProduit, idProducteur, new java.sql.Date(System.currentTimeMillis()));
                 if (!dispo) {
@@ -110,15 +105,14 @@ public class CommandeService {
                 // c) prix unitaire
                 Float prixU = produitDAO.getPrixVenteClient(idProduit, idProducteur);
                 if (prixU == null) throw new SQLException("Prix introuvable pour le produit: " + idProduit);
-                float sousTotal = prixU * quantite;
+                double sousTotal = prixU * quantite;
 
                 // calcul poids
                 if ("Preconditionne".equalsIgnoreCase(typeCond)) {
                     Float poids = produitDAO.getPoidsSachet(idProduit, idProducteur);
                     if (poids != null) poidsTotal += poids * quantite;
                     } else if ("Vrac".equalsIgnoreCase(typeCond)) {
-                        // quantite is stockée comme int (grammes) dans l'UI: convertir en kg
-                        poidsTotal += quantite / 1000.0f; // kg
+                        poidsTotal += quantite; // kg
                 }
 
                 // d) insérer LigneCommande + LigneCommandeProduit + spc vrac/precond
@@ -128,7 +122,7 @@ public class CommandeService {
                 try (PreparedStatement ps = conn.prepareStatement(sqlLigne)) {
                     ps.setString(1, idLigne);
                     ps.setFloat(2, prixU);
-                    ps.setFloat(3, sousTotal);
+                    ps.setDouble(3, sousTotal);
                     ps.setString(4, idCommande);
                     ps.executeUpdate();
                 }
@@ -149,7 +143,7 @@ public class CommandeService {
                     try (PreparedStatement ps = conn.prepareStatement(sqlPre)) {
                         ps.setString(1, idLigne);
                         ps.setString(2, idCommande);
-                        ps.setInt(3, quantite);
+                        ps.setDouble(3, quantite);
                         ps.executeUpdate();
                     }
                 } else if ("Vrac".equalsIgnoreCase(typeCond)) {
@@ -158,7 +152,7 @@ public class CommandeService {
                     try (PreparedStatement ps = conn.prepareStatement(sqlVrac)) {
                         ps.setString(1, idLigne);
                         ps.setString(2, idCommande);
-                            ps.setDouble(3, quantite); // convertir grammes -> kg
+                        ps.setDouble(3, quantite);
                         ps.executeUpdate();
                     } catch (SQLException ex) {
                         System.err.println("[FAILED EXECUTE] SQLVrac: " + sqlVrac + " | params: idLigne=" + idLigne + ", idCommande=" + idCommande);
@@ -174,7 +168,11 @@ public class CommandeService {
             if (contenants != null && !contenants.isEmpty()) {
                 for (ContenantItem contenant : contenants) {
                     String idLigneContenant = generateId("LC");
-                    
+
+                    StockService stockService = new StockService(idLigneContenant);
+                    boolean stocksuffisantContenant = stockService.stocksuffisantContenant(contenant.getReferenceContenant(), contenant.getQuantite(), conn);
+                    if(!stocksuffisantContenant){throw new SQLException("Stock insuffisant pour le produit: " + contenant.getReferenceContenant());}
+
                     // a) Créer LigneCommande pour le contenant
                     String sqlLC = "INSERT INTO LigneCommande (idLigneCommande, prixUnitaire, sousTotalLigne, idCommande) VALUES (?, ?, ?, ?)";
                     // Récupérer le prix et la capacité du contenant
@@ -219,37 +217,9 @@ public class CommandeService {
 
             // // 3) Si domicile, créer ModeRecuperationDomicile avec infos saisies
             if ("Domicile".equalsIgnoreCase(modeRecuperation)) {
-                // // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
-                // float poidsTotalCommande = poidsTotal;
-                // if (poidsTotalCommande <= 0f) {
-                //     // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
-                //     poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
-                
-
-                 String idMode = generateId("MR");
+                String idMode = generateId("MR");
                 // Utiliser les paramètres fournis
                 String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
-            //     // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
-
-            //     String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
-            //             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            //     System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
-            //     try (PreparedStatement ps = conn.prepareStatement(sqlMRD)) {
-            //         ps.setString(1, idMode);
-            //         ps.setString(2, paysLivraison);
-            //         ps.setFloat(3, poidsTotalCommande);
-            //         ps.setDate(4, java.sql.Date.valueOf(dateEstimeeLivraison));
-            //         ps.setFloat(5, distanceLivraison);
-            //         ps.setString(6, typePaysCanon);//probleme
-            //         ps.setString(7, idCommande);
-            //         ps.setString(8, idAdresseDomicile);
-            //         ps.executeUpdate();
-            //     }
-            // }
-                // String idMode = generateId("MR");
-                // // Utiliser les paramètres fournis
-                // String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
-                // // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
                 String typePaysCanon;
                 String t = typePaysLivraison == null ? "" : Normalizer.normalize(typePaysLivraison, Normalizer.Form.NFD)
                         .replaceAll("\\p{M}+", "")

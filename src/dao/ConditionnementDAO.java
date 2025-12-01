@@ -19,6 +19,7 @@ public class ConditionnementDAO {
         if (conn == null)
             throw new SQLException("Connexion null dans ConditionnementDAO");
 
+        boolean oldAutoCommit = conn.getAutoCommit();
         conn.setAutoCommit(false);
 
         double prixActuel;
@@ -67,6 +68,8 @@ public class ConditionnementDAO {
         } catch (SQLException ex) {
             conn.rollback();
             throw ex;
+        } finally {
+            conn.setAutoCommit(oldAutoCommit);
         }
     }
 
@@ -84,5 +87,8 @@ public class ConditionnementDAO {
         }
         return poidsSachets;
     }
+
+
+
 
 }
