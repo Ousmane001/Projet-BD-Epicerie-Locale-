@@ -302,11 +302,14 @@ CREATE TABLE LigneCommande (
 CREATE TABLE LigneCommandeContenant (
     idLigneCommande VARCHAR(10), 
     idCommande VARCHAR(10), 
+    referenceContenant VARCHAR(10), 
     quantiteCommandeContenant INTEGER NOT NULL CHECK (quantiteCommandeContenant > 0),
     PRIMARY KEY (idLigneCommande, idCommande),
     FOREIGN KEY (idLigneCommande, idCommande)
         REFERENCES LigneCommande(idLigneCommande, idCommande)
-        ON DELETE CASCADE
+        ON DELETE CASCADE ,
+    FOREIGN KEY (referenceContenant)
+        REFERENCES Contenant(referenceContenant)
 );
 
 

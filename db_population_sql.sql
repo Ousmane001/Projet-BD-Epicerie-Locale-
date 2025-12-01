@@ -419,8 +419,8 @@ SELECT * FROM dual;
 -- ============================================
 -- 21. INSERTION LIGNE COMMANDE CONTENANT
 -- ============================================
-INSERT INTO LigneCommandeContenant (idLigneCommande, idCommande, quantiteCommandeContenant) 
-  VALUES ('LC0000000', 'CM5555555', 2);
+INSERT INTO LigneCommandeContenant (idLigneCommande, idCommande, referenceContenant, quantiteCommandeContenant) 
+  VALUES ('LC0000000', 'CM5555555', 'CN1234567', 2);
   
 -- ============================================
 -- 22. INSERTION DES PERTES
