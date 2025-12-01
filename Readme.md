@@ -1,4 +1,3 @@
-2em : pas d'affichage de la prochaine dispo
-3em : pas d'affichage de la date estime de livraison, ni du frais de livraison
+1er : ref cont dans lcc both schema & script
 
-Mise `a jour de prix pendant qu’une commande est en cours
+2em : idstcol -> idproduit, idproducteur

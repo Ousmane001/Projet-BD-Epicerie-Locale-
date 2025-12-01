@@ -1,6 +1,7 @@
--- ============================================
+
+
 -- TRANSACTION : Préparation et clôture d'une commande
--- ============================================
+
 -- Ce fichier documente les transactions de préparation et clôture
 -- qui se font dans ClotureCommande.preparerCommande() et 
 -- ClotureCommande.cloturerCommande()
@@ -10,11 +11,11 @@
 --                  Il faut garantir la cohérence pour éviter les problèmes
 --                  de concurrence (deux commandes qui prennent le même stock).
 
--- ============================================
+
 -- TRANSACTION 1 : Préparer une commande (passage à "Prête")
--- ============================================
+
 -- Cette transaction concerne uniquement les commandes DOMICILE
--- Elle sort le stock et enregistre le paiement si nécessaire
+-- Elle sort le stock 
 
 -- DÉBUT TRANSACTION
 -- oldIsolation = conn.getTransactionIsolation();
@@ -43,7 +44,7 @@ SET datePaiement = TRUNC(SYSDATE)
 WHERE idCommande = ?;
 -- Paramètres : idCommande
 
--- ÉTAPE 3 : Sortie de stock (stratégie FEFO)
+-- ÉTAPE 3 : Sortie de stock (stratégie FEFO) fist expired first out
 -- Pour chaque ligne de commande produit :
 
 -- 3.1) Récupérer les lignes produit de la commande
@@ -124,11 +125,10 @@ WHERE idCommande = ?;
 -- conn.rollback(); (si erreur)
 -- conn.setTransactionIsolation(oldIsolation);
 
--- ============================================
+
 -- TRANSACTION 2 : Clôturer une commande
--- ============================================
+
 -- Cette transaction enregistre la récupération/livraison
--- et sort le stock pour les commandes BOUTIQUE si pas déjà fait
 
 -- DÉBUT TRANSACTION
 -- oldIsolation = conn.getTransactionIsolation();
@@ -176,11 +176,8 @@ WHERE idCommande = ?;
 -- conn.rollback(); (si erreur)
 -- conn.setTransactionIsolation(oldIsolation);
 
--- ============================================
+
 -- NOTES IMPORTANTES
--- ============================================
--- - Pour DOMICILE : le stock est sorti au passage à "Prête"
--- - Pour BOUTIQUE : le stock peut être sorti soit à "Prête" soit à la clôture
 -- - La stratégie FEFO (First-Expired, First-Out) garantit qu'on utilise
 --   d'abord les lots les plus proches de la péremption
 -- - L'isolation SERIALIZABLE évite que deux transactions modifient

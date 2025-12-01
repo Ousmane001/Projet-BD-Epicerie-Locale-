@@ -6,8 +6,8 @@ import java.sql.SQLException;
 
 public class DataSourceProvider {
     private static final String URL = "jdbc:oracle:thin:@oracle1.ensimag.fr:1521:oracle1";
-    private static final String USER = "diakitao";
-    private static final String PASS = "diakitao";
+    private static final String USER = "namatyy";
+    private static final String PASS = "namatyy";
     
     // Connexion unique partagée pour toute l'application
     private static Connection connection = null;

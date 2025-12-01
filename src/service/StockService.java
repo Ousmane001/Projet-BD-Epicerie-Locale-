@@ -45,13 +45,19 @@ public class StockService {
                 if (typeLot == null || !typeLot.equalsIgnoreCase(typeConditionnement)) continue;
 
                 LocalDate datePeremption = lotDAO.getDatePeremptionByIdLot(idLot, conn);
+                // Vérifier la péremption seulement si on a une date de livraison estimée
+                // Si dateEstimeeLivraison est null (création de commande), on ne vérifie pas la péremption
                 if (dateEstimeeLivraison != null && datePeremption != null && dateEstimeeLivraison.isAfter(datePeremption)) {
                     continue;
+                }
+                // Si pas de date de livraison, vérifier que le lot n'est pas déjà périmé
+                if (dateEstimeeLivraison == null && datePeremption != null && datePeremption.isBefore(java.time.LocalDate.now())) {
+                    continue; // lot déjà périmé
                 }
 
                 if ("Preconditionne".equalsIgnoreCase(typeConditionnement)) {
                     Integer qteDispo = stockDAO.getQuantitePreconditionneLot(idLot, conn);
-                    if (qteDispo == null) continue;
+                    if (qteDispo == null || qteDispo <= 0) continue;
                     int prise = Math.min(qteDispo, quantiteRestantePre);
                     if(prise>0){
                         lots_pris.add(idLot);
@@ -59,7 +65,7 @@ public class StockService {
                     quantiteRestantePre -= prise;
                 } else if ("Vrac".equalsIgnoreCase(typeConditionnement)) {
                     Double qteDispo = stockDAO.getQuantiteVracLot(idLot, conn);
-                    if (qteDispo == null) continue;
+                    if (qteDispo == null || qteDispo <= 0.0) continue;
                     // qteDispo est en kilos (Double). quantiteRestanteVracKg est en kilos aussi.
                     double priseKg = Math.min(qteDispo, quantiteRestanteVracKg);
                     if(priseKg>0.0){
@@ -68,6 +74,18 @@ public class StockService {
                     quantiteRestanteVracKg -= priseKg;
                 }
             }
+            
+            // Vérifier que toute la quantité demandée a été satisfaite
+            if (isVrac) {
+                if (quantiteRestanteVracKg > 0.0001) { // tolérance pour les erreurs d'arrondi
+                    return new ArrayList<>(); // quantité insuffisante
+                }
+            } else {
+                if (quantiteRestantePre > 0) {
+                    return new ArrayList<>(); // quantité insuffisante
+                }
+            }
+            
             return lots_pris;
         } catch (Exception e) {
             //return false;
