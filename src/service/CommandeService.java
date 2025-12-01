@@ -169,9 +169,10 @@ public class CommandeService {
                 for (ContenantItem contenant : contenants) {
                     String idLigneContenant = generateId("LC");
 
-                    StockService stockService = new StockService(idLigneContenant);
-                    boolean stocksuffisantContenant = stockService.stocksuffisantContenant(contenant.getReferenceContenant(), contenant.getQuantite(), conn);
-                    if(!stocksuffisantContenant){throw new SQLException("Stock insuffisant pour le produit: " + contenant.getReferenceContenant());}
+                    // Vérifier le stock du contenant directement via ContenantDAO
+                    dao.ContenantDAO contenantDAO = new dao.ContenantDAO();
+                    boolean stocksuffisantContenant = contenantDAO.stocksuffisantContenant(contenant.getReferenceContenant(), contenant.getQuantite(), conn);
+                    if(!stocksuffisantContenant){throw new SQLException("Stock insuffisant pour le contenant: " + contenant.getReferenceContenant());}
 
                     // a) Créer LigneCommande pour le contenant
                     String sqlLC = "INSERT INTO LigneCommande (idLigneCommande, prixUnitaire, sousTotalLigne, idCommande) VALUES (?, ?, ?, ?)";

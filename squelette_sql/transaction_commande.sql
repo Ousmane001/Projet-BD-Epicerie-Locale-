@@ -75,7 +75,7 @@ FOR UPDATE
 
 SELECT stockContenant 
 FROM Contenant 
-WHERE refContenant = ? 
+WHERE referenceContenant = ? 
 FOR UPDATE
 --Pour avoir le stock du contenant
 --Le FOR UPDATE est essentiel dans le cas où 2 clients commandent le même produit en
@@ -121,8 +121,8 @@ VALUES (?, ?, ?, ?);
 -- Paramètres : idLigneCommande, prixContenant, sousTotal, idCommande
 
 -- b) LigneCommandeContenant
-INSERT INTO LigneCommandeContenant (idLigneCommande, idCommande, quantiteCommandeContenant)
-VALUES (?, ?, ?);
+INSERT INTO LigneCommandeContenant (idLigneCommande, idCommande, referenceContenant, quantiteCommandeContenant)
+VALUES (?, ?, ?, ?);
 -- Paramètres : idLigneCommande, idCommande, quantite
 
 -- ============================================

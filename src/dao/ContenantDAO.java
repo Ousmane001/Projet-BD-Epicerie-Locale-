@@ -38,7 +38,7 @@ public class ContenantDAO {
     }
 
     public boolean stocksuffisantContenant(String refContenant, double quantiteDemande, Connection conn) {
-    String sql = "SELECT stockContenant FROM Contenant WHERE refContenant = ? FOR UPDATE";
+    String sql = "SELECT stockContenant FROM Contenant WHERE referenceContenant = ? FOR UPDATE";
 
     try (PreparedStatement ps = conn.prepareStatement(sql)) {
         ps.setString(1, refContenant);

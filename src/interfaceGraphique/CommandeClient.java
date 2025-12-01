@@ -291,8 +291,6 @@ public class CommandeClient extends JFrame {
 
             if (choixPoids < 0) return; // annulation
 
-            float poidsSachet = poidsDisponibles.get(choixPoids);
-
             // Choix de la quantité
             String qteStr = JOptionPane.showInputDialog(this,
                     "Quantité (nombre de sachets) :",
