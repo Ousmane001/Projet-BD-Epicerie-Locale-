@@ -71,11 +71,17 @@ SELECT quantiteDisponibleVrac
 FROM LotVrac 
 WHERE idLot = ? 
 FOR UPDATE
---Pour avoir les quantités de vrac
+--Pour avoir les quantités de vrac, et
+
+SELECT stockContenant 
+FROM Contenant 
+WHERE refContenant = ? 
+FOR UPDATE
+--Pour avoir le stock du contenant
 --Le FOR UPDATE est essentiel dans le cas où 2 clients commandent le même produit en
 --Même temps pour une récuperation en boutique car dans ce cas le stock est directement vidé 
 
--- (détails dans le code Java, pas de décrément ici)
+-- (détails dans le code Java)
 
 -- 2.3) Récupération du prix unitaire
 SELECT prixVenteClient 

@@ -1,5 +1,6 @@
 package service;
 
+import dao.ContenantDAO;
 import dao.LotDAO;
 import dao.StockDAO;
 
@@ -17,61 +18,93 @@ public class StockService {
         this.idStock = idStock;
     }
 
-    public ArrayList<String> stockSuffisantProduit(String idProduit, String idProducteur, double quantiteDemande, LocalDate dateEstimeeLivraison, String typeConditionnement, Connection conn) {
-        ArrayList<String> lots_pris = new ArrayList<>();
-        try {
-            ResultSet lots = stockDAO.getLotsOrdonnesByIdStock(idStock, conn);
-            // ArrayList<String> lots_pris = new ArrayList<>();
-            // Pour Preconditionne: quantiteDemande représente un nombre d'unités (int)
-            // Pour Vrac: quantiteDemande est fourni par l'UI comme un entier (grammes) => convertir en kilos
-            boolean isVrac = "Vrac".equalsIgnoreCase(typeConditionnement);
-            double quantiteRestanteVracKg = 0.0;
-            int quantiteRestantePre = 0;
+    public ArrayList<String> stockSuffisantProduit(
+        String idProduit,
+        String idProducteur,
+        double quantiteDemande,
+        LocalDate dateEstimeeLivraison,
+        String typeConditionnement,
+        Connection conn
+) {
+    ArrayList<String> lotsPris = new ArrayList<>();
+
+    try {
+        ResultSet lots = stockDAO.getLotsOrdonnesByIdStock(idStock, conn);
+
+        boolean isVrac = "Vrac".equalsIgnoreCase(typeConditionnement);
+        double qteRestanteVracKg = isVrac ? quantiteDemande : 0.0;
+        int qteRestantePre = isVrac ? 0 : (int) quantiteDemande;
+
+        double totalPrisVrac = 0.0;
+        int totalPrisPre = 0;
+
+        while (lots != null && lots.next()) {
+            if (isVrac && qteRestanteVracKg <= 0) break;
+            if (!isVrac && qteRestantePre <= 0) break;
+
+            String idLot = lots.getString("idLot");
+
+            String typeLot = lotDAO.getConditionnementByIdLot(idLot, conn);
+            if (typeLot == null || !typeLot.equalsIgnoreCase(typeConditionnement)) continue;
+
+            LocalDate datePeremption = lotDAO.getDatePeremptionByIdLot(idLot, conn);
+            if (dateEstimeeLivraison != null && datePeremption != null &&
+                dateEstimeeLivraison.isAfter(datePeremption)) {
+                continue;
+            }
+
             if (isVrac) {
-                quantiteRestanteVracKg = quantiteDemande; // convertir gram -> kg
+                Double dispo = stockDAO.getQuantiteVracLot(idLot, conn);
+                if (dispo == null) continue;
+
+                double prise = Math.min(dispo, qteRestanteVracKg);
+                if (prise > 0) {
+                    lotsPris.add(idLot);
+                    totalPrisVrac += prise;
+                }
+                qteRestanteVracKg -= prise;
+
             } else {
-                quantiteRestantePre = (int) quantiteDemande;
+                Integer dispo = stockDAO.getQuantitePreconditionneLot(idLot, conn);
+                if (dispo == null) continue;
+
+                int prise = Math.min(dispo, qteRestantePre);
+                if (prise > 0) {
+                    lotsPris.add(idLot);
+                    totalPrisPre += prise;
+                }
+                qteRestantePre -= prise;
             }
-            while (lots != null && lots.next()) {
-                // Arrêter si la demande a été satisfaite
-                if (isVrac) {
-                    if (quantiteRestanteVracKg <= 0.0) break;
-                } else {
-                    if (quantiteRestantePre <= 0) break;
-                }
-                String idLot = lots.getString("idLot");
-
-                String typeLot = lotDAO.getConditionnementByIdLot(idLot, conn);
-                if (typeLot == null || !typeLot.equalsIgnoreCase(typeConditionnement)) continue;
-
-                LocalDate datePeremption = lotDAO.getDatePeremptionByIdLot(idLot, conn);
-                if (dateEstimeeLivraison != null && datePeremption != null && dateEstimeeLivraison.isAfter(datePeremption)) {
-                    continue;
-                }
-
-                if ("Preconditionne".equalsIgnoreCase(typeConditionnement)) {
-                    Integer qteDispo = stockDAO.getQuantitePreconditionneLot(idLot, conn);
-                    if (qteDispo == null) continue;
-                    int prise = Math.min(qteDispo, quantiteRestantePre);
-                    if(prise>0){
-                        lots_pris.add(idLot);
-                    }
-                    quantiteRestantePre -= prise;
-                } else if ("Vrac".equalsIgnoreCase(typeConditionnement)) {
-                    Double qteDispo = stockDAO.getQuantiteVracLot(idLot, conn);
-                    if (qteDispo == null) continue;
-                    // qteDispo est en kilos (Double). quantiteRestanteVracKg est en kilos aussi.
-                    double priseKg = Math.min(qteDispo, quantiteRestanteVracKg);
-                    if(priseKg>0.0){
-                        lots_pris.add(idLot);
-                    }
-                    quantiteRestanteVracKg -= priseKg;
-                }
-            }
-            return lots_pris;
-        } catch (Exception e) {
-            //return false;
-            return lots_pris;
         }
+
+        // Vérification finale : est-ce qu’on a TOUT ?
+        boolean suffisant = isVrac
+                ? totalPrisVrac >= quantiteDemande
+                : totalPrisPre >= (int) quantiteDemande;
+
+        if (!suffisant) {
+            // Stock dans les choux, on renvoie une liste VIDE
+            return new ArrayList<>();
+        }
+
+        return lotsPris;
+
+    } catch (Exception e) {
+        // En cas de crash, on renvoie vide, pas des conneries
+        return new ArrayList<>();
     }
+}
+
+public boolean stocksuffisantContenant(String refContenat, double quantiteDemande, Connection conn){
+    try{
+        ContenantDAO contenantDAO = new ContenantDAO();
+        boolean suffisant = contenantDAO.stocksuffisantContenant(refContenat, quantiteDemande, conn);
+        if(suffisant){
+            return true;
+        }
+        return false;
+    } catch(Exception e){
+        return false;
+    }
+}
 }

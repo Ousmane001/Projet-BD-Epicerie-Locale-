@@ -52,18 +52,15 @@ public class CommandeService {
         }
 
         Connection conn = DataSourceProvider.getValidConnection();
-        int oldIsolation = Connection.TRANSACTION_READ_COMMITTED;
+        conn.setAutoCommit(false);
+        conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         
         try {
-            oldIsolation = conn.getTransactionIsolation();
-            conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-            conn.setAutoCommit(false);
-            afficherColonnes(conn, "LigneCommandeProduitVrac");
-            afficherTable(conn, "LigneCommandeProduitVrac");
 
             String idCommande = generateId("CM");
             //LocalDate dateEstimeeLivraison = LocalDate.now(); 
-            
+            afficherColonnes(conn, idCommande);
+            afficherTable(conn, "LigneCommandeProduitVrac");
 
             // 1) Créer la commande (statut En préparation)
                 String sqlCommande = "INSERT INTO Commande (idCommande, dateCommande, heureCommande, statutCommande, modePaiement, modeRecuperation, idClient) " +
@@ -174,7 +171,11 @@ public class CommandeService {
             if (contenants != null && !contenants.isEmpty()) {
                 for (ContenantItem contenant : contenants) {
                     String idLigneContenant = generateId("LC");
-                    
+
+                    StockService stockService = new StockService(idLigneContenant);
+                    boolean stocksuffisantContenant = stockService.stocksuffisantContenant(contenant.getReferenceContenant(), contenant.getQuantite(), conn);
+                    if(!stocksuffisantContenant){throw new SQLException("Stock insuffisant pour le produit: " + contenant.getReferenceContenant());}
+
                     // a) Créer LigneCommande pour le contenant
                     String sqlLC = "INSERT INTO LigneCommande (idLigneCommande, prixUnitaire, sousTotalLigne, idCommande) VALUES (?, ?, ?, ?)";
                     // Récupérer le prix et la capacité du contenant
@@ -219,37 +220,9 @@ public class CommandeService {
 
             // // 3) Si domicile, créer ModeRecuperationDomicile avec infos saisies
             if ("Domicile".equalsIgnoreCase(modeRecuperation)) {
-                // // Garantir poidsTotalCommande > 0 même sans produits (contenants seuls)
-                // float poidsTotalCommande = poidsTotal;
-                // if (poidsTotalCommande <= 0f) {
-                //     // utiliser la capacité totale des contenants comme approximation (>0), sinon un minimum
-                //     poidsTotalCommande = capaciteTotaleContenants > 0f ? capaciteTotaleContenants : 0.1f;
-                
-
-                 String idMode = generateId("MR");
+                String idMode = generateId("MR");
                 // Utiliser les paramètres fournis
                 String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
-            //     // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
-
-            //     String sqlMRD = "INSERT INTO ModeRecuperationDomicile (idModeRecuperationDomicile, paysLivraison, poidsTotalCommande, distanceAdresseBoutique, dateEstimeeLivraison, typePaysLivraison, idCommande, idAdresse) " +
-            //             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            //     System.out.println("[DEBUG] SQL ModeRecuperationDomicile: " + sqlMRD + " | idCommande=" + idCommande);
-            //     try (PreparedStatement ps = conn.prepareStatement(sqlMRD)) {
-            //         ps.setString(1, idMode);
-            //         ps.setString(2, paysLivraison);
-            //         ps.setFloat(3, poidsTotalCommande);
-            //         ps.setDate(4, java.sql.Date.valueOf(dateEstimeeLivraison));
-            //         ps.setFloat(5, distanceLivraison);
-            //         ps.setString(6, typePaysCanon);//probleme
-            //         ps.setString(7, idCommande);
-            //         ps.setString(8, idAdresseDomicile);
-            //         ps.executeUpdate();
-            //     }
-            // }
-                // String idMode = generateId("MR");
-                // // Utiliser les paramètres fournis
-                // String paysLivraison = "International".equals(typePaysLivraison) ? "Autre" : "France";
-                // // Normaliser typePaysLivraison aux valeurs attendues par la contrainte
                 String typePaysCanon;
                 String t = typePaysLivraison == null ? "" : Normalizer.normalize(typePaysLivraison, Normalizer.Form.NFD)
                         .replaceAll("\\p{M}+", "")
