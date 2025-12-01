@@ -260,11 +260,11 @@ public class CommandeClient extends JFrame {
         if (choix == -1) return; // Annulé
         
         String typeConditionnement;
-        int quantite = 0;
+        double quantite = 0;
         
         if (choix == 0) {
             typeConditionnement = "Preconditionne";
-            // 2️⃣ Récupérer les poids disponibles depuis la DB
+            // Récupérer les poids disponibles depuis la DB
             ProduitDAO produitDAO = new ProduitDAO();
             ConditionnementDAO conditionnementDAO = new ConditionnementDAO();
             String idConditionnement = produitDAO.getIdConditionnement(produit.getIdProduit(), produit.getIdProducteur());
@@ -325,7 +325,7 @@ public class CommandeClient extends JFrame {
                     return;
                 }
                 // Pour Vrac, on stocke dans quantite comme int * 1000 pour garder les décimales
-                quantite = (int)(qteVrac * 1000);
+                quantite = qteVrac;
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Quantité invalide.", "Erreur", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -343,8 +343,8 @@ public class CommandeClient extends JFrame {
 
         // Ajouter à la table
         float prixUnitaire = produit.getPrixVenteClient();
-        float qteAffichee = typeConditionnement.equals("Vrac") ? quantite / 1000.0f : quantite;
-        float sousTotal = typeConditionnement.equals("Vrac") ? prixUnitaire * (quantite / 1000.0f) : prixUnitaire * quantite;
+        double qteAffichee = typeConditionnement.equals("Vrac") ? quantite: quantite;
+        double sousTotal = typeConditionnement.equals("Vrac") ? prixUnitaire * quantite: prixUnitaire * quantite;
         Object[] row = {
             produit.getNomProduit(),
             typeConditionnement,

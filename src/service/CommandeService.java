@@ -85,7 +85,7 @@ public class CommandeService {
                 String idProduit = it.getIdProduit();
                 String idProducteur = it.getIdProducteur();
                 String typeCond = it.getTypeConditionnement();
-                int quantite = it.getQuantite();
+                double quantite = it.getQuantite();
                 // a) vérifier saisonnalité
                 boolean dispo = produitDAO.estDisponible(idProduit, idProducteur, new java.sql.Date(System.currentTimeMillis()));
                 if (!dispo) {
@@ -110,7 +110,7 @@ public class CommandeService {
                 // c) prix unitaire
                 Float prixU = produitDAO.getPrixVenteClient(idProduit, idProducteur);
                 if (prixU == null) throw new SQLException("Prix introuvable pour le produit: " + idProduit);
-                float sousTotal = prixU * quantite;
+                double sousTotal = prixU * quantite;
 
                 // calcul poids
                 if ("Preconditionne".equalsIgnoreCase(typeCond)) {
@@ -128,7 +128,7 @@ public class CommandeService {
                 try (PreparedStatement ps = conn.prepareStatement(sqlLigne)) {
                     ps.setString(1, idLigne);
                     ps.setFloat(2, prixU);
-                    ps.setFloat(3, sousTotal);
+                    ps.setDouble(3, sousTotal);
                     ps.setString(4, idCommande);
                     ps.executeUpdate();
                 }
@@ -149,7 +149,7 @@ public class CommandeService {
                     try (PreparedStatement ps = conn.prepareStatement(sqlPre)) {
                         ps.setString(1, idLigne);
                         ps.setString(2, idCommande);
-                        ps.setInt(3, quantite);
+                        ps.setDouble(3, quantite);
                         ps.executeUpdate();
                     }
                 } else if ("Vrac".equalsIgnoreCase(typeCond)) {
@@ -158,7 +158,7 @@ public class CommandeService {
                     try (PreparedStatement ps = conn.prepareStatement(sqlVrac)) {
                         ps.setString(1, idLigne);
                         ps.setString(2, idCommande);
-                            ps.setDouble(3, quantite); // convertir grammes -> kg
+                        ps.setDouble(3, quantite);
                         ps.executeUpdate();
                     } catch (SQLException ex) {
                         System.err.println("[FAILED EXECUTE] SQLVrac: " + sqlVrac + " | params: idLigne=" + idLigne + ", idCommande=" + idCommande);

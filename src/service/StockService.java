@@ -17,7 +17,7 @@ public class StockService {
         this.idStock = idStock;
     }
 
-    public ArrayList<String> stockSuffisantProduit(String idProduit, String idProducteur, int quantiteDemande, LocalDate dateEstimeeLivraison, String typeConditionnement, Connection conn) {
+    public ArrayList<String> stockSuffisantProduit(String idProduit, String idProducteur, double quantiteDemande, LocalDate dateEstimeeLivraison, String typeConditionnement, Connection conn) {
         ArrayList<String> lots_pris = new ArrayList<>();
         try {
             ResultSet lots = stockDAO.getLotsOrdonnesByIdStock(idStock, conn);
@@ -28,9 +28,9 @@ public class StockService {
             double quantiteRestanteVracKg = 0.0;
             int quantiteRestantePre = 0;
             if (isVrac) {
-                quantiteRestanteVracKg = quantiteDemande / 1000.0; // convertir gram -> kg
+                quantiteRestanteVracKg = quantiteDemande; // convertir gram -> kg
             } else {
-                quantiteRestantePre = quantiteDemande;
+                quantiteRestantePre = (int) quantiteDemande;
             }
             while (lots != null && lots.next()) {
                 // Arrêter si la demande a été satisfaite

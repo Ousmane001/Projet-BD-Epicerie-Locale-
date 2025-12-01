@@ -4,9 +4,9 @@ public class CommandeItem {
     private final String idProduit;
     private final String idProducteur;
     private final String typeConditionnement; // "Vrac" ou "Preconditionne"
-    private final int quantite; // kg pour Vrac, unités pour Préconditionné
+    private final double quantite; // kg pour Vrac, unités pour Préconditionné
 
-    public CommandeItem(String idProduit, String idProducteur, String typeConditionnement, int quantite) {
+    public CommandeItem(String idProduit, String idProducteur, String typeConditionnement, double quantite) {
         this.idProduit = idProduit;
         this.idProducteur = idProducteur;
         this.typeConditionnement = typeConditionnement;
@@ -16,5 +16,5 @@ public class CommandeItem {
     public String getIdProduit() { return idProduit; }
     public String getIdProducteur() { return idProducteur; }
     public String getTypeConditionnement() { return typeConditionnement; }
-    public int getQuantite() { return quantite; }
+    public double getQuantite() { return quantite; }
 }

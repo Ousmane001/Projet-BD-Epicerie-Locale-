@@ -59,7 +59,22 @@ FROM Lot l
 WHERE l.idStock = ? 
 ORDER BY l.dateLimite ASC;
 -- Paramètres : idStock
--- On parcourt les lots pour vérifier qu'il y a assez de stock
+-- On parcourt les lots pour vérifier qu'il y a assez de stock avec
+
+SELECT quantiteDisponiblePreconditionne 
+FROM LotPreconditionne 
+WHERE idLot = ? 
+FOR UPDATE
+--Pour avoir les quantités de préconditionné, et 
+
+SELECT quantiteDisponibleVrac 
+FROM LotVrac 
+WHERE idLot = ? 
+FOR UPDATE
+--Pour avoir les quantités de vrac
+--Le FOR UPDATE est essentiel dans le cas où 2 clients commandent le même produit en
+--Même temps pour une récuperation en boutique car dans ce cas le stock est directement vidé 
+
 -- (détails dans le code Java, pas de décrément ici)
 
 -- 2.3) Récupération du prix unitaire
