@@ -114,8 +114,7 @@ public class CommandeService {
                     Float poids = produitDAO.getPoidsSachet(idProduit, idProducteur);
                     if (poids != null) poidsTotal += poids * quantite;
                     } else if ("Vrac".equalsIgnoreCase(typeCond)) {
-                        // quantite is stockée comme int (grammes) dans l'UI: convertir en kg
-                        poidsTotal += quantite / 1000.0f; // kg
+                        poidsTotal += quantite; // kg
                 }
 
                 // d) insérer LigneCommande + LigneCommandeProduit + spc vrac/precond
